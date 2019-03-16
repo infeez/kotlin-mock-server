@@ -8,14 +8,14 @@ This is kotlin DSL mock server based OkHttp3 mock server.
 Simple
 ```kotlin
 val mockWebServer = MockWebServer()
-        mockWebServer.stubContext {
-            doResponseWithUrl("/base/mock/server") {
-                fromString("response string") {
-                    withStatusCode(200)
-                    withHeaders {
-                        "key" withValue "value"
-                    }
-                }
+mockWebServer.stubContext {
+    doResponseWithUrl("/base/mock/server") {
+        fromString("response string") {
+            withStatusCode(200)
+            withHeaders {
+                "key" withValue "value"
             }
         }
+     }
+}
 ```
