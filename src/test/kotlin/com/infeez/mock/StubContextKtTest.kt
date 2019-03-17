@@ -2,48 +2,62 @@ package com.infeez.mock
 
 import io.github.rybalkinsd.kohttp.dsl.httpGet
 import okhttp3.mockwebserver.MockWebServer
+import okhttp3.mockwebserver.SocketPolicy
+import org.junit.After
+import org.junit.Before
 import org.junit.Test
-
+import java.util.concurrent.TimeUnit
+import kotlin.test.assertTrue
 
 class StubContextKtTest {
 
+    lateinit var mockWebServer: MockWebServer
+
+    @Before
+    fun setUp() {
+        mockWebServer = MockWebServer()
+        mockWebServer.start()
+    }
+
     @Test
     fun stubContext() {
-        val mockWebServer = MockWebServer()
-        mockWebServer.stubContext {
+        stubContext(mockWebServer) {
             doResponseWithUrl("/base/mock/server") {
                 fromString("response string") {
-                    withStatusCode(200)
-                    withHeaders {
+                    responseStatusCode = 200
+                    socketPolicy = SocketPolicy.CONTINUE_ALWAYS
+                    headers {
                         "key" withValue "value"
+                    }
+                    bodyDelay {
+                        delay = 100
+                        unit = TimeUnit.MILLISECONDS
+                    }
+                    headersDelay {
+                        delay = 100
+                        unit = TimeUnit.MILLISECONDS
                     }
                 }
             }
         }
 
-        mockWebServer.start()
-
-        val url = mockWebServer.url("/").toString()
-        println(url)
-        println(mockWebServer.hostName)
-        println(mockWebServer.port)
         val response = httpGet {
             host = mockWebServer.hostName
             port = mockWebServer.port
             path = "/base/mock/server"
         }
 
-
-        response.use {
-            println(it.body()!!.string())
+        assertTrue {
+            response.body()!!.string() == "response string"
         }
 
+        assertTrue {
+            response.headers()["key"] == "value"
+        }
+    }
 
-        //assertTrue {
-          //  response.body()!!.string() == ""
-        //}
-
-
+    @After
+    fun dispose() {
         mockWebServer.shutdown()
     }
 

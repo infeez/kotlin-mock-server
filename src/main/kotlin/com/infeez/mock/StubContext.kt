@@ -26,6 +26,6 @@ class StubContext(private val mockWebServer: MockWebServer) {
     }
 }
 
-fun MockWebServer.stubContext(init: StubContext.() -> Unit) {
-    StubContext(this).apply(init)
+fun stubContext(mockWebServer: MockWebServer, init: StubContext.() -> Unit) {
+    StubContext(mockWebServer).apply(init)
 }

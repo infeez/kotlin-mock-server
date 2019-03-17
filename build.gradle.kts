@@ -17,8 +17,7 @@ dependencies {
     implementation(kotlin("reflect"))
     implementation("com.squareup.okhttp3", "mockwebserver", "3.13.0")
 
-    implementation("io.github.rybalkinsd", "kohttp", "0.7.1")
-
+    testImplementation("io.github.rybalkinsd", "kohttp", "0.7.1")
     testImplementation(kotlin("test-junit"))
 }
 
