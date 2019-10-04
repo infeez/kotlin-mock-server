@@ -16,12 +16,28 @@ object Mocks {
             }
         }
     }
+
+    val userInfo = MockEnqueueResponse {
+        doResponseWithUrl("userInfo/") {
+            fromString(""" { "login" : "user", "username" : "user user" } """) {
+                responseStatusCode = 200
+            }
+        }
+    }
+    
+    val userLoginScenario = listOf(login, userInfo)
 }
 ```
 and use with
 ```kotlin
 mockWebServer.mockScenario {
     add(Mocks.login)
+    add(Mocks.userInfo)
+}
+```
+```kotlin
+mockWebServer.mockScenario {
+    addAll(Mocks.userLoginScenario)
 }
 ```
 
