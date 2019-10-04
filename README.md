@@ -1,4 +1,4 @@
-# kotlin-mock-server
+# kotlin-mock-server [![Build Status](https://travis-ci.com/infeez/kotlin-mock-server.svg?branch=master)](https://travis-ci.com/infeez/kotlin-mock-server)
 
 This is kotlin DSL mock server based OkHttp3 mock server.
 
