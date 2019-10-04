@@ -27,24 +27,24 @@ mockWebServer.mockScenario {
 
 ```kotlin
 mockWebServer.mockScenario {
-            add {
-                doResponseWithUrl("/base/mock/server") {
-                    fromString("response string") {
-                        responseStatusCode = 200
-                        socketPolicy = SocketPolicy.CONTINUE_ALWAYS
-                        headers {
-                            "key" withValue "value"
-                        }
-                        bodyDelay {
-                            delay = 100
-                            unit = TimeUnit.MILLISECONDS
-                        }
-                        headersDelay {
-                            delay = 100
-                            unit = TimeUnit.MILLISECONDS
-                        }
-                    }
+    add {
+        doResponseWithUrl("/base/mock/server") {
+            fromString("response string") {
+                responseStatusCode = 200
+                socketPolicy = SocketPolicy.CONTINUE_ALWAYS
+                headers {
+                    "key" withValue "value"
+                }
+                bodyDelay {
+                    delay = 100
+                    unit = TimeUnit.MILLISECONDS
+                }
+                headersDelay {
+                    delay = 100
+                    unit = TimeUnit.MILLISECONDS
                 }
             }
         }
+    }
+}
 ```
