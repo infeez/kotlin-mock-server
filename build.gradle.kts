@@ -15,9 +15,9 @@ repositories {
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
     implementation(kotlin("reflect"))
-    implementation("com.squareup.okhttp3", "mockwebserver", "3.13.0")
+    implementation("com.squareup.okhttp3", "mockwebserver", "4.2.1")
 
-    testImplementation("io.github.rybalkinsd", "kohttp", "0.7.1")
+    testImplementation("io.github.rybalkinsd", "kohttp", "0.11.0")
     testImplementation(kotlin("test-junit"))
 }
 
