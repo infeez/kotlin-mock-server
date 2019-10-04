@@ -14,7 +14,9 @@ class MockResponseParameterBuilder(private val mockResponse: MockResponse) {
     var socketPolicy: SocketPolicy? = null
         set(value) {
             value?.run {
-                mockResponse.setSocketPolicy(value)
+                mockResponse.apply {
+                    socketPolicy = value
+                }
             }
             field = value
         }

@@ -1,7 +1,6 @@
 language: java
 
 before_install:
-- chmod -R src
-- chmod +x gradlew
+  - chmod +x gradlew
 
 script: ./gradlew clean build

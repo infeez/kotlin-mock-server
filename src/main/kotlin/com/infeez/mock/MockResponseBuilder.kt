@@ -1,6 +1,7 @@
 package com.infeez.mock
 
 import okhttp3.mockwebserver.MockResponse
+import java.io.File
 import java.io.InputStream
 
 class MockResponseBuilder {
@@ -22,5 +23,21 @@ class MockResponseBuilder {
 
     fun fromString(bodyString: String) {
         mockResponse.setBody(bodyString)
+    }
+
+    fun fromFile(file: File) {
+        fromStream(file.inputStream())
+    }
+
+    fun fromFile(filePath: String) {
+        fromStream(File(filePath).inputStream())
+    }
+
+    fun fromFile(file: File, init: MockResponseParameterBuilder.() -> Unit) {
+        fromStream(file.inputStream(), init)
+    }
+
+    fun fromFile(filePath: String, init: MockResponseParameterBuilder.() -> Unit) {
+        fromStream(File(filePath).inputStream(), init)
     }
 }
