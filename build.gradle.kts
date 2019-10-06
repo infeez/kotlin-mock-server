@@ -1,10 +1,11 @@
 plugins {
     java
-    kotlin("jvm") version "1.2.51"
+    kotlin("jvm") version "1.3.50"
+    id("maven")
 }
 
 group = "kotlin-mock-server"
-version = "0.1.0"
+version = "0.2.1"
 
 repositories {
     mavenCentral()

@@ -18,7 +18,6 @@ class ScenarioBuilder(private val mockWebServer: MockWebServer) {
     }
     private val dispatcher: Dispatcher by dispatcherDelegate
 
-
     fun add(create: MockEnqueueResponse.() -> Unit) {
         val a = MockEnqueueResponse(create)
         add(a)
@@ -43,8 +42,8 @@ class ScenarioBuilder(private val mockWebServer: MockWebServer) {
                 mockWebServer.dispatcher = dispatcher
             }
         } else {
-            if (dispatcherDelegate.isInitialized()) {
-                throw IllegalStateException("Please use only one way mocks dispatcher or enqueues")
+            check(!dispatcherDelegate.isInitialized()) {
+                "Please use only one way mocks dispatcher or enqueues"
             }
         }
     }
