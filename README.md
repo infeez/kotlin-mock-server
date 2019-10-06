@@ -1,4 +1,4 @@
-# kotlin-mock-server [![Build Status](https://travis-ci.com/infeez/kotlin-mock-server.svg?branch=master)](https://travis-ci.com/infeez/kotlin-mock-server)
+# kotlin-mock-server [![Build Status](https://travis-ci.com/infeez/kotlin-mock-server.svg?branch=master)](https://travis-ci.com/infeez/kotlin-mock-server) [![](https://jitpack.io/v/infeez/kotlin-mock-server.svg)](https://jitpack.io/#infeez/kotlin-m
 
 This is kotlin DSL mock server based OkHttp3 mock server.
 
@@ -62,5 +62,22 @@ mockWebServer.mockScenario {
             }
         }
     }
+}
+```
+
+
+Step 1: Add it in your root build.gradle at the end of repositories:
+```gradle
+allprojects {
+    repositories {
+        ...
+        maven { url 'https://jitpack.io' }
+    }
+}
+```
+Step 2: Add the dependency
+```gradle
+dependencies {
+    implementation 'com.github.infeez:kotlin-mock-server:X.X.X'
 }
 ```
