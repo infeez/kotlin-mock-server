@@ -5,12 +5,12 @@ import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.RecordedRequest
 
-private val responses = mutableListOf<Pair<String, MockResponse>>()
+private val responses = mutableMapOf<String, MockResponse>()
 
 private val dispatcherDelegate = lazy {
     object : Dispatcher() {
         override fun dispatch(request: RecordedRequest): MockResponse {
-            return responses.find { request.path == it.first }?.second ?: MockResponse().setResponseCode(404)
+            return responses[request.path] ?: MockResponse().setResponseCode(404)
         }
     }
 }
@@ -24,10 +24,10 @@ class ScenarioBuilder(private val mockWebServer: MockWebServer) {
 
     fun add(response: MockEnqueueResponse) {
         checkAndSetDispatcher(response.url)
-        response.url?.run {
-            responses.add(this to response.mockResponse)
-        } ?: run {
+        if (response.url.isNullOrEmpty()) {
             mockWebServer.enqueue(response.mockResponse)
+        } else {
+            responses[response.url!!] = response.mockResponse
         }
     }
 
@@ -38,6 +38,8 @@ class ScenarioBuilder(private val mockWebServer: MockWebServer) {
     private fun checkAndSetDispatcher(url: String?) {
         if (!url.isNullOrEmpty()) {
             if (!dispatcherDelegate.isInitialized()) {
+                mockWebServer.dispatcher = dispatcher
+            } else if (mockWebServer.dispatcher != dispatcher) {
                 mockWebServer.dispatcher = dispatcher
             }
         } else {
@@ -50,4 +52,12 @@ class ScenarioBuilder(private val mockWebServer: MockWebServer) {
 
 fun MockWebServer.mockScenario(create: ScenarioBuilder.() -> Unit) {
     create(ScenarioBuilder(this))
+}
+
+fun withMockServer(mockServer: MockWebServer.() -> Unit) {
+    MockWebServer().run {
+        start()
+        mockServer(this)
+        shutdown()
+    }
 }

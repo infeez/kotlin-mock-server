@@ -5,13 +5,13 @@ import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.SocketPolicy
 import org.junit.Test
 import java.util.concurrent.TimeUnit
+import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
-import kotlin.test.assertTrue
 
 class StubContextKtTest {
 
     @Test
-    fun stubContext() = createMockServer {
+    fun `mock test`() = withMockServer {
         mockScenario {
             add {
                 doResponseWithUrl("/base/mock/server") {
@@ -36,21 +36,16 @@ class StubContextKtTest {
 
         val response = httpGet {
             host = hostName
-            port = this@createMockServer.port
+            port = this@withMockServer.port
             path = "/base/mock/server"
         }
 
-        assertTrue {
-            response.body!!.string() == "response string"
-        }
-
-        assertTrue {
-            response.headers["key"] == "value"
-        }
+        assertEquals("response string", response.body!!.string())
+        assertEquals("value", response.headers["key"])
     }
 
     @Test
-    fun doubleResponseUseTest() = createMockServer {
+    fun `double response use test`() = withMockServer {
         assertFailsWith<IllegalStateException>(message = "Please use only one way mocks dispatcher or enqueues") {
             mockScenario {
                 add {
@@ -67,11 +62,46 @@ class StubContextKtTest {
         }
     }
 
-    private fun createMockServer(mockServer: MockWebServer.() -> Unit) {
-        MockWebServer().run {
-            start()
-            mockServer(this)
-            shutdown()
+    @Test
+    fun `some mock servers`() {
+        val mockServer1 = MockWebServer()
+        val mockServer2 = MockWebServer()
+        mockServer1.start()
+        mockServer2.start()
+
+        mockServer1.mockScenario {
+            add {
+                doResponseWithUrl("/one") {
+                    fromString("one")
+                }
+            }
         }
+
+        mockServer2.mockScenario {
+            add {
+                doResponseWithUrl("/two") {
+                    fromString("two")
+                }
+            }
+        }
+
+        val response1 = httpGet {
+            host = mockServer1.hostName
+            port = mockServer1.port
+            path = "/one"
+        }
+
+        assertEquals("one", response1.body!!.string())
+
+        val response2 = httpGet {
+            host = mockServer2.hostName
+            port = mockServer2.port
+            path = "/two"
+        }
+
+        assertEquals("two", response2.body!!.string())
+
+        mockServer1.shutdown()
+        mockServer2.shutdown()
     }
 }
