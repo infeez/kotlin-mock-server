@@ -1,52 +1,42 @@
 package com.infeez.mock
 
+import com.infeez.mock.utils.extractQueryParams
+import java.net.HttpURLConnection
 import okhttp3.mockwebserver.Dispatcher
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.RecordedRequest
 
-private val responses = mutableMapOf<String, MockResponse>()
+class ScenarioBuilder(mockWebServer: MockWebServer) {
 
-private val dispatcherDelegate = lazy {
-    object : Dispatcher() {
-        override fun dispatch(request: RecordedRequest): MockResponse {
-            return responses[request.path] ?: MockResponse().setResponseCode(404)
+    private val responses = mutableMapOf<String, MockData>()
+
+    init {
+        mockWebServer.dispatcher = object : Dispatcher() {
+            override fun dispatch(request: RecordedRequest): MockResponse {
+                val mockData = responses[request.requestUrl?.encodedPath]
+
+                val result = request.path?.let { extractQueryParams(it) } == mockData?.url?.let { extractQueryParams(it) }
+
+                if (!result) {
+                    return MockResponse().setResponseCode(HttpURLConnection.HTTP_NOT_FOUND)
+                }
+
+                return mockData?.mockResponse ?: MockResponse().setResponseCode(HttpURLConnection.HTTP_NOT_FOUND)
+            }
         }
     }
-}
-private val dispatcher: Dispatcher by dispatcherDelegate
-
-class ScenarioBuilder(private val mockWebServer: MockWebServer) {
 
     fun add(create: MockEnqueueResponse.() -> Unit) {
         add(MockEnqueueResponse(create))
     }
 
     fun add(response: MockEnqueueResponse) {
-        checkAndSetDispatcher(response.url)
-        if (response.url.isNullOrEmpty()) {
-            mockWebServer.enqueue(response.mockResponse)
-        } else {
-            responses[response.url!!] = response.mockResponse
-        }
+        responses[response.mockData.url] = response.mockData
     }
 
     fun addAll(responses: List<MockEnqueueResponse>) {
         responses.forEach { add(it) }
-    }
-
-    private fun checkAndSetDispatcher(url: String?) {
-        if (!url.isNullOrEmpty()) {
-            if (!dispatcherDelegate.isInitialized()) {
-                mockWebServer.dispatcher = dispatcher
-            } else if (mockWebServer.dispatcher != dispatcher) {
-                mockWebServer.dispatcher = dispatcher
-            }
-        } else {
-            check(!dispatcherDelegate.isInitialized()) {
-                "Please use only one way mocks dispatcher or enqueues"
-            }
-        }
     }
 }
 

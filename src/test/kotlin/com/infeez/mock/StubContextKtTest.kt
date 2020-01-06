@@ -1,12 +1,12 @@
 package com.infeez.mock
 
 import io.github.rybalkinsd.kohttp.dsl.httpGet
-import okhttp3.mockwebserver.MockWebServer
-import okhttp3.mockwebserver.SocketPolicy
-import org.junit.Test
 import java.util.concurrent.TimeUnit
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import okhttp3.mockwebserver.MockWebServer
+import okhttp3.mockwebserver.SocketPolicy
+import org.junit.Test
 
 class StubContextKtTest {
 
@@ -15,21 +15,20 @@ class StubContextKtTest {
         mockScenario {
             add {
                 doResponseWithUrl("/base/mock/server") {
-                    fromString("response string") {
-                        responseStatusCode = 200
-                        socketPolicy = SocketPolicy.CONTINUE_ALWAYS
-                        headers {
-                            "key" withValue "value"
-                        }
-                        bodyDelay {
-                            delay = 100
-                            unit = TimeUnit.MILLISECONDS
-                        }
-                        headersDelay {
-                            delay = 100
-                            unit = TimeUnit.MILLISECONDS
-                        }
+                    responseStatusCode = 200
+                    socketPolicy = SocketPolicy.CONTINUE_ALWAYS
+                    headers {
+                        "key" withValue "value"
                     }
+                    bodyDelay {
+                        delay = 100
+                        unit = TimeUnit.MILLISECONDS
+                    }
+                    headersDelay {
+                        delay = 100
+                        unit = TimeUnit.MILLISECONDS
+                    }
+                    fromString("response string")
                 }
             }
         }
@@ -54,9 +53,6 @@ class StubContextKtTest {
                     }
                 }
                 add {
-                    doResponse {
-                        fromString("")
-                    }
                 }
             }
         }
