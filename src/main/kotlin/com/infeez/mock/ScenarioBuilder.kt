@@ -1,7 +1,9 @@
 package com.infeez.mock
 
 import com.infeez.mock.utils.extractQueryParams
+import java.lang.IllegalStateException
 import java.net.HttpURLConnection
+import java.net.URLDecoder
 import okhttp3.mockwebserver.Dispatcher
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
@@ -9,20 +11,27 @@ import okhttp3.mockwebserver.RecordedRequest
 
 class ScenarioBuilder(mockWebServer: MockWebServer) {
 
-    private val responses = mutableMapOf<String, MockData>()
+    private val responsesWithUrl = mutableMapOf<String, MockEnqueueResponse>()
+    private val responsesWithMatcher = mutableListOf<MockEnqueueResponse>()
 
     init {
         mockWebServer.dispatcher = object : Dispatcher() {
             override fun dispatch(request: RecordedRequest): MockResponse {
-                val mockData = responses[request.requestUrl?.encodedPath]
-
-                val result = request.path?.let { extractQueryParams(it) } == mockData?.url?.let { extractQueryParams(it) }
-
-                if (!result) {
-                    return MockResponse().setResponseCode(HttpURLConnection.HTTP_NOT_FOUND)
+                for (res in responsesWithMatcher) {
+                    if (res.matcher != null && res.matcher?.matches(request) == true) {
+                        return res.mockResponse
+                    }
                 }
 
-                return mockData?.mockResponse ?: MockResponse().setResponseCode(HttpURLConnection.HTTP_NOT_FOUND)
+                val decodedUrl = URLDecoder.decode(request.path, "utf-8")
+                val urlWithParams = decodedUrl.split("?")
+                val res = responsesWithUrl[urlWithParams.first()]
+
+                if (urlWithParams.size == 2 && res?.queryParams != null && extractQueryParams(decodedUrl) == res.queryParams) {
+                    return res.mockResponse
+                }
+
+                return res?.mockResponse ?: MockResponse().setResponseCode(HttpURLConnection.HTTP_NOT_FOUND)
             }
         }
     }
@@ -32,7 +41,14 @@ class ScenarioBuilder(mockWebServer: MockWebServer) {
     }
 
     fun add(response: MockEnqueueResponse) {
-        responses[response.mockData.url] = response.mockData
+        if (response.url == null && response.matcher == null) {
+            throw IllegalStateException("Url or matcher not to be null")
+        }
+        if (response.url == null) {
+            responsesWithMatcher.add(response)
+        } else {
+            responsesWithUrl[response.url!!] = response
+        }
     }
 
     fun addAll(responses: List<MockEnqueueResponse>) {
