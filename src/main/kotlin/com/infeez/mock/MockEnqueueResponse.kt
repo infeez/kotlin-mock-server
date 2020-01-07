@@ -23,12 +23,12 @@ class MockEnqueueResponse(create: MockEnqueueResponse.() -> Unit) {
 
     fun doResponseWithUrl(url: String, init: MockResponseBuilder.() -> Unit) {
         val mockResponseBuilder = MockResponseBuilder().apply(init)
-        this.url = url.split("?").first()
+        this.url = url.split("?").first().let { u -> u.takeUnless { it.startsWith("/") }?.let { "/$it" } ?: u }
         this.queryParams = url.extractQueryParams()
         this.mockResponse = mockResponseBuilder.mockResponse
     }
 
-    fun doResponseWithUrl(requestMatcher: RequestMatcher, init: MockResponseBuilder.() -> Unit) {
+    fun doResponseWithMatcher(requestMatcher: RequestMatcher, init: MockResponseBuilder.() -> Unit) {
         val mockResponseBuilder = MockResponseBuilder().apply(init)
         this.requestMatcher = requestMatcher
         this.mockResponse = mockResponseBuilder.mockResponse

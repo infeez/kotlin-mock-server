@@ -1,10 +1,9 @@
-package com.infeez.mock.utils
+package com.infeez.mock.extensions
 
-import com.infeez.mock.extensions.extractQueryParams
 import kotlin.test.assertEquals
 import org.junit.Test
 
-internal class UtilsKtTest {
+class ExtensionsKtTest {
 
     @Test
     fun `extract query params test`() {
