@@ -1,26 +1,25 @@
 package com.infeez.mock.matcher
 
-import com.infeez.mock.utils.extractQueryParams
-import java.net.URLDecoder
+import com.infeez.mock.extensions.decodeUrl
+import com.infeez.mock.extensions.extractQueryParams
 import java.util.regex.Pattern
 import okhttp3.mockwebserver.RecordedRequest
 
-interface Matcher {
-    fun matches(request: RecordedRequest): Boolean
-}
+typealias RequestMatcher = (request: RecordedRequest) -> Boolean
 
-class PathMatcher(private val pattern: Pattern) : Matcher {
-    override fun matches(request: RecordedRequest): Boolean {
-        val path = URLDecoder.decode(request.path, "utf-8")
-        return path.split("?").first().let { pattern.matcher(it).matches() }
+class PathMatcher(private val pattern: Pattern) : RequestMatcher {
+    override fun invoke(request: RecordedRequest): Boolean {
+        return request.path.takeUnless { it.isNullOrEmpty() }?.decodeUrl()?.split("?")?.first()?.let {
+            pattern.matcher(it).matches()
+        } == true
     }
 }
 
-class QueryParamMatcher(private val param: String, private val pattern: Pattern) : Matcher {
-    override fun matches(request: RecordedRequest): Boolean {
-        val path = URLDecoder.decode(request.path, "utf-8")
-        val params = extractQueryParams(path)
-        return params[param]?.let { pattern.matcher(it).matches() } == true
+class QueryParamMatcher(private val param: String, private val pattern: Pattern) : RequestMatcher {
+    override fun invoke(request: RecordedRequest): Boolean {
+        return request.path?.decodeUrl().takeUnless { it.isNullOrEmpty() }?.extractQueryParams()?.get(param)?.let {
+            pattern.matcher(it).matches()
+        } == true
     }
 }
 
@@ -39,21 +38,8 @@ infix fun ruleParam.endsWith(value: String) = matches(suffix(value))
 infix fun ruleParam.matches(pattern: Pattern) = QueryParamMatcher(name, pattern)
 infix fun ruleParam.matches(regex: Regex) = matches(regex.toPattern())
 
-infix fun Matcher.or(target: Matcher): Matcher {
-    return object : Matcher {
-        override fun matches(request: RecordedRequest): Boolean {
-            return this@or.matches(request) || target.matches(request)
-        }
-    }
-}
-
-infix fun Matcher.and(target: Matcher): Matcher {
-    return object : Matcher {
-        override fun matches(request: RecordedRequest): Boolean {
-            return this@and.matches(request) && target.matches(request)
-        }
-    }
-}
+infix fun RequestMatcher.or(target: RequestMatcher): RequestMatcher = { request -> this@or.invoke(request) || target.invoke(request) }
+infix fun RequestMatcher.and(target: RequestMatcher): RequestMatcher = { request -> this@and.invoke(request) && target.invoke(request) }
 
 fun any() = Pattern.compile(".*")
 fun exact(text: String) = Pattern.compile(Pattern.quote(text))

@@ -1,9 +1,9 @@
 package com.infeez.mock
 
-import com.infeez.mock.utils.extractQueryParams
+import com.infeez.mock.extensions.decodeUrl
+import com.infeez.mock.extensions.extractQueryParams
 import java.lang.IllegalStateException
 import java.net.HttpURLConnection
-import java.net.URLDecoder
 import okhttp3.mockwebserver.Dispatcher
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
@@ -17,21 +17,25 @@ class ScenarioBuilder(mockWebServer: MockWebServer) {
     init {
         mockWebServer.dispatcher = object : Dispatcher() {
             override fun dispatch(request: RecordedRequest): MockResponse {
+                val decodedUrl = request.path!!.decodeUrl()
+                val urlWithParams = decodedUrl.split("?")
+                val resWithUrl = responsesWithUrl[urlWithParams.first()]
+
+                if (urlWithParams.size == 2 && resWithUrl?.queryParams != null && decodedUrl.extractQueryParams() == resWithUrl.queryParams) {
+                    return resWithUrl.mockResponse
+                }
+
+                if (resWithUrl?.mockResponse != null) {
+                    return resWithUrl.mockResponse
+                }
+
                 for (res in responsesWithMatcher) {
-                    if (res.matcher != null && res.matcher?.matches(request) == true) {
+                    if (res.requestMatcher != null && res.requestMatcher?.invoke(request) == true) {
                         return res.mockResponse
                     }
                 }
 
-                val decodedUrl = URLDecoder.decode(request.path, "utf-8")
-                val urlWithParams = decodedUrl.split("?")
-                val res = responsesWithUrl[urlWithParams.first()]
-
-                if (urlWithParams.size == 2 && res?.queryParams != null && extractQueryParams(decodedUrl) == res.queryParams) {
-                    return res.mockResponse
-                }
-
-                return res?.mockResponse ?: MockResponse().setResponseCode(HttpURLConnection.HTTP_NOT_FOUND)
+                return MockResponse().setResponseCode(HttpURLConnection.HTTP_NOT_FOUND)
             }
         }
     }
@@ -41,7 +45,7 @@ class ScenarioBuilder(mockWebServer: MockWebServer) {
     }
 
     fun add(response: MockEnqueueResponse) {
-        if (response.url == null && response.matcher == null) {
+        if (response.url == null && response.requestMatcher == null) {
             throw IllegalStateException("Url or matcher not to be null")
         }
         if (response.url == null) {

@@ -1,14 +1,13 @@
 package com.infeez.mock
 
-import com.infeez.mock.matcher.Matcher
-import com.infeez.mock.utils.extractQueryParams
-import java.net.URLDecoder
+import com.infeez.mock.extensions.extractQueryParams
+import com.infeez.mock.matcher.RequestMatcher
 import okhttp3.mockwebserver.MockResponse
 
 class MockEnqueueResponse(create: MockEnqueueResponse.() -> Unit) {
 
     internal var url: String? = null
-    internal var matcher: Matcher? = null
+    internal var requestMatcher: RequestMatcher? = null
     internal var queryParams: Map<String, String>? = null
     internal lateinit var mockResponse: MockResponse
 
@@ -24,15 +23,14 @@ class MockEnqueueResponse(create: MockEnqueueResponse.() -> Unit) {
 
     fun doResponseWithUrl(url: String, init: MockResponseBuilder.() -> Unit) {
         val mockResponseBuilder = MockResponseBuilder().apply(init)
-        val decodedUrl = URLDecoder.decode(url, "utf-8")
         this.url = url.split("?").first()
-        this.queryParams = extractQueryParams(decodedUrl)
+        this.queryParams = url.extractQueryParams()
         this.mockResponse = mockResponseBuilder.mockResponse
     }
 
-    fun doResponseWithUrl(matcher: Matcher, init: MockResponseBuilder.() -> Unit) {
+    fun doResponseWithUrl(requestMatcher: RequestMatcher, init: MockResponseBuilder.() -> Unit) {
         val mockResponseBuilder = MockResponseBuilder().apply(init)
-        this.matcher = matcher
+        this.requestMatcher = requestMatcher
         this.mockResponse = mockResponseBuilder.mockResponse
     }
 }

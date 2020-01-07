@@ -8,8 +8,6 @@ plugins {
     id("org.jlleitschuh.gradle.ktlint") version "9.1.1"
 }
 
-apply(plugin = "org.jlleitschuh.gradle.ktlint")
-
 repositories {
     mavenCentral()
 }
@@ -25,6 +23,7 @@ dependencies {
 
 configure<JavaPluginConvention> {
     sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
 }
 
 ktlint {
@@ -36,6 +35,8 @@ ktlint {
     }
 }
 
-tasks.withType<Jar> {
-    archiveName = "${project.group}-$version.jar"
+tasks.compileJava {
+    options.isIncremental = true
+    options.isFork = true
+    options.isFailOnError = false
 }
