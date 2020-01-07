@@ -40,7 +40,6 @@ mockWebServer.mockScenario {
     addAll(Mocks.userLoginScenario)
 }
 ```
-
 ```kotlin
 mockWebServer.mockScenario {
     add {
@@ -64,7 +63,33 @@ mockWebServer.mockScenario {
     }
 }
 ```
+You can add several responses in add block
+```kotlin
+mockWebServer.mockScenario {
+    add {
+        doResponseWithUrl("/base/mock/server1")
+        doResponseWithUrl("/base/mock/server2")
+        doResponseWithUrl("/base/mock/server3")
+    }
+}
+```
+You can set request match params for url and query.
+Params for url and query: eq, startWith, endsWith, matches
+```kotlin
+doResponseWithMatcher(rulePath eq "/some/path") {
+    //...                    
+}
 
+doResponseWithMatcher(ruleParam("queryParam") eq "1") {
+    //...                    
+}
+```
+Matcher params can be combined with: and, or.
+```kotlin
+doResponseWithMatcher((rulePath eq "/some/path") or (ruleParam("queryParam") eq "1")) {
+    //...                    
+}
+```
 
 Step 1: Add it in your root build.gradle at the end of repositories:
 ```gradle

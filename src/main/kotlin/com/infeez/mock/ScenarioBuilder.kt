@@ -1,52 +1,62 @@
 package com.infeez.mock
 
+import com.infeez.mock.extensions.decodeUrl
+import com.infeez.mock.extensions.extractQueryParams
+import java.lang.IllegalStateException
+import java.net.HttpURLConnection
 import okhttp3.mockwebserver.Dispatcher
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.RecordedRequest
 
-private val responses = mutableMapOf<String, MockResponse>()
+class ScenarioBuilder(mockWebServer: MockWebServer) {
 
-private val dispatcherDelegate = lazy {
-    object : Dispatcher() {
-        override fun dispatch(request: RecordedRequest): MockResponse {
-            return responses[request.path] ?: MockResponse().setResponseCode(404)
+    private val responsesWithUrl = mutableMapOf<String, MockEnqueueResponse>()
+    private val responsesWithMatcher = mutableListOf<MockEnqueueResponse>()
+
+    init {
+        mockWebServer.dispatcher = object : Dispatcher() {
+            override fun dispatch(request: RecordedRequest): MockResponse {
+                val decodedUrl = request.path!!.decodeUrl()
+                val urlWithParams = decodedUrl.split("?")
+                val resWithUrl = responsesWithUrl[urlWithParams.first()]
+
+                if (urlWithParams.size == 2 && resWithUrl?.queryParams != null && decodedUrl.extractQueryParams() == resWithUrl.queryParams) {
+                    return resWithUrl.mockResponse
+                }
+
+                if (resWithUrl?.mockResponse != null) {
+                    return resWithUrl.mockResponse
+                }
+
+                for (res in responsesWithMatcher) {
+                    if (res.requestMatcher != null && res.requestMatcher?.invoke(request) == true) {
+                        return res.mockResponse
+                    }
+                }
+
+                return MockResponse().setResponseCode(HttpURLConnection.HTTP_NOT_FOUND)
+            }
         }
     }
-}
-private val dispatcher: Dispatcher by dispatcherDelegate
-
-class ScenarioBuilder(private val mockWebServer: MockWebServer) {
 
     fun add(create: MockEnqueueResponse.() -> Unit) {
         add(MockEnqueueResponse(create))
     }
 
     fun add(response: MockEnqueueResponse) {
-        checkAndSetDispatcher(response.url)
-        if (response.url.isNullOrEmpty()) {
-            mockWebServer.enqueue(response.mockResponse)
+        if (response.url == null && response.requestMatcher == null) {
+            throw IllegalStateException("Url or matcher not to be null")
+        }
+        if (response.url == null) {
+            responsesWithMatcher.add(response)
         } else {
-            responses[response.url!!] = response.mockResponse
+            responsesWithUrl[response.url!!] = response
         }
     }
 
     fun addAll(responses: List<MockEnqueueResponse>) {
         responses.forEach { add(it) }
-    }
-
-    private fun checkAndSetDispatcher(url: String?) {
-        if (!url.isNullOrEmpty()) {
-            if (!dispatcherDelegate.isInitialized()) {
-                mockWebServer.dispatcher = dispatcher
-            } else if (mockWebServer.dispatcher != dispatcher) {
-                mockWebServer.dispatcher = dispatcher
-            }
-        } else {
-            check(!dispatcherDelegate.isInitialized()) {
-                "Please use only one way mocks dispatcher or enqueues"
-            }
-        }
     }
 }
 

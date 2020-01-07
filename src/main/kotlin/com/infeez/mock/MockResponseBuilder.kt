@@ -1,28 +1,52 @@
 package com.infeez.mock
 
-import okhttp3.mockwebserver.MockResponse
 import java.io.File
 import java.io.InputStream
+import okhttp3.mockwebserver.MockResponse
+import okhttp3.mockwebserver.SocketPolicy
 
 class MockResponseBuilder {
     internal var mockResponse = MockResponse()
 
-    fun fromStream(inputStream: InputStream, init: MockResponseParameterBuilder.() -> Unit) {
-        mockResponse.setBody(inputStream.use { it.reader().readText() })
-        init(MockResponseParameterBuilder(mockResponse))
+    var responseStatusCode: Int = 200
+        set(value) {
+            mockResponse.setResponseCode(value)
+            field = value
+        }
+
+    var socketPolicy: SocketPolicy? = null
+        set(value) {
+            value?.run {
+                mockResponse.apply {
+                    socketPolicy = value
+                }
+            }
+            field = value
+        }
+
+    fun headers(init: MockResponseHeaderBuilder.() -> Unit) {
+        val headerBuilder = MockResponseHeaderBuilder(mockResponse)
+        init(headerBuilder)
     }
 
-    fun fromString(bodyString: String, init: MockResponseParameterBuilder.() -> Unit) {
-        mockResponse.setBody(bodyString)
-        init(MockResponseParameterBuilder(mockResponse))
+    fun bodyDelay(init: MockResponseParameterDelayBuilder.() -> Unit) {
+        val bodyDelayBuilder = MockResponseParameterDelayBuilder()
+        init(bodyDelayBuilder)
+        mockResponse.setBodyDelay(bodyDelayBuilder.delay, bodyDelayBuilder.unit)
     }
 
-    fun fromStream(inputStream: InputStream) {
-        mockResponse.setBody(inputStream.use { it.reader().readText() })
+    fun headersDelay(init: MockResponseParameterDelayBuilder.() -> Unit) {
+        val bodyDelayBuilder = MockResponseParameterDelayBuilder()
+        init(bodyDelayBuilder)
+        mockResponse.setHeadersDelay(bodyDelayBuilder.delay, bodyDelayBuilder.unit)
     }
 
     fun fromString(bodyString: String) {
         mockResponse.setBody(bodyString)
+    }
+
+    fun fromStream(inputStream: InputStream) {
+        mockResponse.setBody(inputStream.use { it.reader().readText() })
     }
 
     fun fromFile(file: File) {
@@ -33,11 +57,7 @@ class MockResponseBuilder {
         fromStream(File(filePath).inputStream())
     }
 
-    fun fromFile(file: File, init: MockResponseParameterBuilder.() -> Unit) {
-        fromStream(file.inputStream(), init)
-    }
-
-    fun fromFile(filePath: String, init: MockResponseParameterBuilder.() -> Unit) {
-        fromStream(File(filePath).inputStream(), init)
+    fun emptyBody() {
+        fromString("")
     }
 }
