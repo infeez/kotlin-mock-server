@@ -17,7 +17,7 @@ class PathMatcher(private val pattern: Pattern) : RequestMatcher {
 
 class QueryParamMatcher(private val param: String, private val pattern: Pattern) : RequestMatcher {
     override fun invoke(request: RecordedRequest): Boolean {
-        return request.path?.decodeUrl().takeUnless { it.isNullOrEmpty() }?.extractQueryParams()?.get(param)?.let {
+        return request.path.takeUnless { it.isNullOrEmpty() }?.decodeUrl()?.extractQueryParams()?.get(param)?.let {
             pattern.matcher(it).matches()
         } == true
     }
