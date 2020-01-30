@@ -1,5 +1,5 @@
 group = "kotlin-mock-server"
-version = "0.3.0"
+version = "0.4.0"
 
 plugins {
     java
@@ -18,6 +18,7 @@ dependencies {
     implementation("com.squareup.okhttp3", "mockwebserver", "4.2.1")
 
     testImplementation("io.github.rybalkinsd", "kohttp", "0.11.1")
+    testImplementation("com.google.code.gson", "gson", "2.8.6")
     testImplementation(kotlin("test-junit"))
 }
 
