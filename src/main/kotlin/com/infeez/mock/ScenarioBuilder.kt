@@ -1,5 +1,7 @@
 package com.infeez.mock
 
+import com.infeez.mock.converter.ConverterFactory
+import com.infeez.mock.converter.DataConverter
 import com.infeez.mock.extensions.decodeUrl
 import com.infeez.mock.extensions.extractQueryParams
 import java.lang.IllegalStateException
@@ -11,8 +13,8 @@ import okhttp3.mockwebserver.RecordedRequest
 
 class ScenarioBuilder(mockWebServer: MockWebServer) {
 
-    private val responsesWithUrl = mutableMapOf<String, MockEnqueueResponse>()
-    private val responsesWithMatcher = mutableListOf<MockEnqueueResponse>()
+    private var responsesWithUrl = mutableMapOf<String, MockEnqueueResponse>()
+    private var responsesWithMatcher = mutableListOf<MockEnqueueResponse>()
 
     init {
         mockWebServer.dispatcher = object : Dispatcher() {
@@ -58,10 +60,33 @@ class ScenarioBuilder(mockWebServer: MockWebServer) {
     fun addAll(responses: List<MockEnqueueResponse>) {
         responses.forEach { add(it) }
     }
+
+    fun addAll(vararg responses: MockEnqueueResponse) {
+        responses.forEach { add(it) }
+    }
+
+    fun replace(from: MockEnqueueResponse, to: MockEnqueueResponse) {
+        responsesWithUrl = responsesWithUrl.map { if (it.value == from) it.key to to else it.key to it.value }.toMap().toMutableMap()
+        val index = responsesWithMatcher.indexOf(from)
+        if (index >= 0) {
+            responsesWithMatcher[index] = to
+        }
+    }
+
+    fun remove(response: MockEnqueueResponse) {
+        responsesWithUrl = responsesWithUrl.filterValues { it != response }.toMutableMap()
+        responsesWithMatcher.removeAll { it == response }
+    }
+
+    fun setBodyConverter(converter: ConverterFactory) {
+        DataConverter.converterFactory = converter
+    }
 }
 
-fun MockWebServer.mockScenario(create: ScenarioBuilder.() -> Unit) {
-    create(ScenarioBuilder(this))
+fun MockWebServer.mockScenario(create: ScenarioBuilder.() -> Unit): ScenarioBuilder {
+    val scenarioBuilder = ScenarioBuilder(this)
+    create(scenarioBuilder)
+    return scenarioBuilder
 }
 
 fun withMockServer(mockServer: MockWebServer.() -> Unit) {

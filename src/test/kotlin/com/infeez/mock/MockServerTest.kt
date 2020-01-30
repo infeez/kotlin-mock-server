@@ -1,20 +1,35 @@
 package com.infeez.mock
 
+import com.google.gson.Gson
+import com.infeez.mock.converter.ConverterFactory
 import com.infeez.mock.matcher.and
 import com.infeez.mock.matcher.endsWith
 import com.infeez.mock.matcher.eq
 import com.infeez.mock.matcher.or
+import com.infeez.mock.matcher.ruleBody
 import com.infeez.mock.matcher.ruleParam
 import com.infeez.mock.matcher.rulePath
 import com.infeez.mock.matcher.startWith
+import com.infeez.mock.matcher.withConverter
+import com.infeez.mock.matcher.withString
 import io.github.rybalkinsd.kohttp.dsl.httpGet
+import io.github.rybalkinsd.kohttp.dsl.httpPost
+import java.lang.reflect.Type
 import java.util.concurrent.TimeUnit
 import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
 import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.SocketPolicy
 import org.junit.Test
 
 class MockServerTest {
+
+    private val gsonConverterFactory = object : ConverterFactory {
+        private val gson = Gson()
+        override fun <T> convert(value: String, type: Type): T {
+            return gson.fromJson(value, type)
+        }
+    }
 
     @Test
     fun `mock test`() = withMockServer {
@@ -354,4 +369,195 @@ class MockServerTest {
 
         assertEquals("response string", response.body!!.string())
     }
+
+    @Test
+    fun `body param string test`() = withMockServer {
+        mockScenario {
+            add {
+                doResponseWithMatcher((rulePath eq "/some/path") and (ruleBody withString { this == "body string" })) {
+                    fromString("response string")
+                }
+            }
+        }
+
+        val response = httpPost {
+            host = hostName
+            body {
+                string("body string")
+            }
+            port = this@withMockServer.port
+            path = "/some/path"
+        }
+
+        assertEquals("response string", response.body!!.string())
+    }
+
+    @Test
+    fun `body param converter full json test`() = withMockServer {
+        mockScenario {
+            setBodyConverter(gsonConverterFactory)
+
+            add {
+                doResponseWithMatcher((rulePath eq "/some/path") and (ruleBody.withConverter<StubModel> {
+                    a == "a" && b == 1 && c == 2L && d == 3.0
+                })) {
+                    fromString("response string")
+                }
+            }
+        }
+
+        val response = httpPost {
+            host = hostName
+            body {
+                json {
+                    "a" to "a"
+                    "b" to 1
+                    "c" to 2L
+                    "d" to 3.0
+                }
+            }
+            port = this@withMockServer.port
+            path = "/some/path"
+        }
+
+        assertEquals("response string", response.body!!.string())
+    }
+
+    @Test
+    fun `body param converter one field json test`() = withMockServer {
+        mockScenario {
+            setBodyConverter(gsonConverterFactory)
+
+            add {
+                doResponseWithMatcher((rulePath eq "/some/path") and (ruleBody.withConverter<StubModel> {
+                    a == "a"
+                })) {
+                    fromString("response string")
+                }
+            }
+        }
+
+        val response = httpPost {
+            host = hostName
+            body {
+                json {
+                    "a" to "a"
+                    "b" to 1
+                    "c" to 2L
+                    "d" to 3.0
+                }
+            }
+            port = this@withMockServer.port
+            path = "/some/path"
+        }
+
+        assertEquals("response string", response.body!!.string())
+    }
+
+    @Test
+    fun `body param converter no one field json test`() = withMockServer {
+        mockScenario {
+            setBodyConverter(gsonConverterFactory)
+
+            add {
+                doResponseWithMatcher((rulePath eq "/some/path") and (ruleBody.withConverter<StubModel> {
+                    a == "aa"
+                })) {
+                    fromString("response string")
+                }
+            }
+        }
+
+        val response = httpPost {
+            host = hostName
+            body {
+                json {
+                    "a" to "a"
+                    "b" to 1
+                    "c" to 2L
+                    "d" to 3.0
+                }
+            }
+            port = this@withMockServer.port
+            path = "/some/path"
+        }
+
+        assertNotEquals("response string", response.body!!.string())
+    }
+
+    @Test
+    fun `replace mock test`() = withMockServer {
+        val mock1 = MockEnqueueResponse {
+            doResponseWithMatcher(rulePath eq "/some/path") {
+                fromString("response string1")
+            }
+        }
+        val mock2 = MockEnqueueResponse {
+            doResponseWithMatcher(rulePath eq "/some/path") {
+                fromString("response string2")
+            }
+        }
+
+        val mockScenario = mockScenario {
+            setBodyConverter(gsonConverterFactory)
+            addAll(mock1, mock2)
+        }
+
+        var response = httpPost {
+            host = hostName
+            port = this@withMockServer.port
+            path = "/some/path"
+        }
+
+        assertEquals("response string1", response.body!!.string())
+
+        mockScenario.replace(mock1, mock2)
+
+        response = httpPost {
+            host = hostName
+            port = this@withMockServer.port
+            path = "/some/path"
+        }
+
+        assertEquals("response string2", response.body!!.string())
+    }
+
+    @Test
+    fun `remove mock test`() = withMockServer {
+        val mock = MockEnqueueResponse {
+            doResponseWithMatcher(rulePath eq "/some/path") {
+                fromString("response string")
+            }
+        }
+
+        val mockScenario = mockScenario {
+            setBodyConverter(gsonConverterFactory)
+            add(mock)
+        }
+
+        var response = httpPost {
+            host = hostName
+            port = this@withMockServer.port
+            path = "/some/path"
+        }
+
+        assertEquals("response string", response.body!!.string())
+
+        mockScenario.remove(mock)
+
+        response = httpPost {
+            host = hostName
+            port = this@withMockServer.port
+            path = "/some/path"
+        }
+
+        assertNotEquals("response string", response.body!!.string())
+    }
+
+    data class StubModel(
+        val a: String,
+        val b: Int,
+        val c: Long,
+        val d: Double
+    )
 }

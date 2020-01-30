@@ -33,4 +33,22 @@ class MockEnqueueResponse(create: MockEnqueueResponse.() -> Unit) {
         this.requestMatcher = requestMatcher
         this.mockResponse = mockResponseBuilder.mockResponse
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as MockEnqueueResponse
+
+        if (url != other.url) return false
+        if (queryParams != other.queryParams) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = url?.hashCode() ?: 0
+        result = 31 * result + (queryParams?.hashCode() ?: 0)
+        return result
+    }
 }
