@@ -1,10 +1,7 @@
 package com.infeez.mock
 
-import com.infeez.mock.converter.ConverterFactory
-import com.infeez.mock.converter.DataConverter
 import com.infeez.mock.extensions.decodeUrl
 import com.infeez.mock.extensions.extractQueryParams
-import java.lang.IllegalStateException
 import java.net.HttpURLConnection
 import okhttp3.mockwebserver.Dispatcher
 import okhttp3.mockwebserver.MockResponse
@@ -76,10 +73,6 @@ class ScenarioBuilder(mockWebServer: MockWebServer) {
     fun remove(response: MockEnqueueResponse) {
         responsesWithUrl = responsesWithUrl.filterValues { it != response }.toMutableMap()
         responsesWithMatcher.removeAll { it == response }
-    }
-
-    fun setBodyConverter(converter: ConverterFactory) {
-        DataConverter.converterFactory = converter
     }
 }
 
