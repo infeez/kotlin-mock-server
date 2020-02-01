@@ -9,7 +9,7 @@ class MockEnqueueResponse(create: MockEnqueueResponse.() -> Unit) {
     internal var url: String? = null
     internal var requestMatcher: RequestMatcher? = null
     internal var queryParams: Map<String, String>? = null
-    internal lateinit var mockResponse: MockResponse
+    lateinit var mockResponse: MockResponse
 
     init {
         create(this)
@@ -34,21 +34,12 @@ class MockEnqueueResponse(create: MockEnqueueResponse.() -> Unit) {
         this.mockResponse = mockResponseBuilder.mockResponse
     }
 
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as MockEnqueueResponse
-
-        if (url != other.url) return false
-        if (queryParams != other.queryParams) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = url?.hashCode() ?: 0
-        result = 31 * result + (queryParams?.hashCode() ?: 0)
-        return result
+    inline fun <reified T> changeResponse(change: T.() -> Unit): MockEnqueueResponse {
+        val body = mockResponse.getBody() ?: error("Body may not by null!")
+        val data = body.inputStream().bufferedReader().use { it.readText() }
+        val model = MockServerSettings.converterFactory!!.from<T>(data, T::class.java)
+        change(model)
+        mockResponse.setBody(MockServerSettings.converterFactory!!.to(model))
+        return this
     }
 }

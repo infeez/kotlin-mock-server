@@ -1,6 +1,6 @@
 package com.infeez.mock.matcher
 
-import com.infeez.mock.converter.DataConverter
+import com.infeez.mock.MockServerSettings
 import com.infeez.mock.extensions.decodeUrl
 import com.infeez.mock.extensions.extractQueryParams
 import java.lang.reflect.Type
@@ -45,7 +45,7 @@ sealed class BodyConverter<T> {
 
     class BodyDataConverter<T>(private val type: Type) : BodyConverter<T>() {
         override fun convert(src: String): T {
-            return DataConverter.convert(src, type)
+            return MockServerSettings.converterFactory!!.from(src, type)
         }
     }
 }

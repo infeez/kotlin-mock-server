@@ -14,21 +14,32 @@ import com.infeez.mock.matcher.withConverter
 import com.infeez.mock.matcher.withString
 import io.github.rybalkinsd.kohttp.dsl.httpGet
 import io.github.rybalkinsd.kohttp.dsl.httpPost
+import io.github.rybalkinsd.kohttp.util.json
 import java.lang.reflect.Type
 import java.util.concurrent.TimeUnit
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.SocketPolicy
+import org.junit.Before
 import org.junit.Test
 
 class MockServerTest {
 
     private val gsonConverterFactory = object : ConverterFactory {
         private val gson = Gson()
-        override fun <T> convert(value: String, type: Type): T {
+        override fun <T> from(value: String, type: Type): T {
             return gson.fromJson(value, type)
         }
+
+        override fun <T> to(value: T): String {
+            return gson.toJson(value)
+        }
+    }
+
+    @Before
+    fun setUp() {
+        MockServerSettings.converterFactory = gsonConverterFactory
     }
 
     @Test
@@ -395,7 +406,6 @@ class MockServerTest {
     @Test
     fun `body param converter full json test`() = withMockServer {
         mockScenario {
-            setBodyConverter(gsonConverterFactory)
 
             add {
                 doResponseWithMatcher((rulePath eq "/some/path") and (ruleBody.withConverter<StubModel> {
@@ -426,7 +436,6 @@ class MockServerTest {
     @Test
     fun `body param converter one field json test`() = withMockServer {
         mockScenario {
-            setBodyConverter(gsonConverterFactory)
 
             add {
                 doResponseWithMatcher((rulePath eq "/some/path") and (ruleBody.withConverter<StubModel> {
@@ -457,7 +466,6 @@ class MockServerTest {
     @Test
     fun `body param converter no one field json test`() = withMockServer {
         mockScenario {
-            setBodyConverter(gsonConverterFactory)
 
             add {
                 doResponseWithMatcher((rulePath eq "/some/path") and (ruleBody.withConverter<StubModel> {
@@ -499,7 +507,6 @@ class MockServerTest {
         }
 
         val mockScenario = mockScenario {
-            setBodyConverter(gsonConverterFactory)
             addAll(mock1, mock2)
         }
 
@@ -531,7 +538,6 @@ class MockServerTest {
         }
 
         val mockScenario = mockScenario {
-            setBodyConverter(gsonConverterFactory)
             add(mock)
         }
 
@@ -554,10 +560,50 @@ class MockServerTest {
         assertNotEquals("response string", response.body!!.string())
     }
 
+    @Test
+    fun `change mock test`() = withMockServer {
+        val mock1 = MockEnqueueResponse {
+            doResponseWithMatcher(rulePath eq "/some/path") {
+                fromString(json {
+                    "a" to "a"
+                    "b" to 1
+                    "c" to 2L
+                    "d" to 3.0
+                })
+            }
+        }
+
+        val mockScenario = mockScenario {
+            add(mock1)
+        }
+
+        var response = httpPost {
+            host = hostName
+            port = this@withMockServer.port
+            path = "/some/path"
+        }
+
+        assertEquals("""{"a":"a","b":1,"c":2,"d":3.0}""", response.body!!.string())
+
+        val mock2 = mock1.changeResponse<StubModel> {
+            d = 55.5
+        }
+
+        mockScenario.replace(mock1, mock2)
+
+        response = httpPost {
+            host = hostName
+            port = this@withMockServer.port
+            path = "/some/path"
+        }
+
+        assertEquals("""{"a":"a","b":1,"c":2,"d":55.5}""", response.body!!.string())
+    }
+
     data class StubModel(
-        val a: String,
-        val b: Int,
-        val c: Long,
-        val d: Double
+        var a: String,
+        var b: Int,
+        var c: Long,
+        var d: Double
     )
 }
