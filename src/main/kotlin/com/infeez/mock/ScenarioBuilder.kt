@@ -21,16 +21,16 @@ class ScenarioBuilder(mockWebServer: MockWebServer) {
                 val resWithUrl = responsesWithUrl[urlWithParams.first()]
 
                 if (urlWithParams.size == 2 && resWithUrl?.queryParams != null && decodedUrl.extractQueryParams() == resWithUrl.queryParams) {
-                    return resWithUrl.mockResponse
+                    return resWithUrl.mockResponseBuilder.mockResponse
                 }
 
-                if (resWithUrl?.mockResponse != null) {
-                    return resWithUrl.mockResponse
+                if (resWithUrl?.mockResponseBuilder?.mockResponse != null) {
+                    return resWithUrl.mockResponseBuilder.mockResponse
                 }
 
                 for (res in responsesWithMatcher) {
                     if (res.requestMatcher != null && res.requestMatcher?.invoke(request) == true) {
-                        return res.mockResponse
+                        return res.mockResponseBuilder.mockResponse
                     }
                 }
 
@@ -68,6 +68,12 @@ class ScenarioBuilder(mockWebServer: MockWebServer) {
         if (index >= 0) {
             responsesWithMatcher[index] = to
         }
+    }
+
+    inline fun <reified T> replaceMockResponse(from: MockEnqueueResponse, change: T.() -> Unit): MockEnqueueResponse {
+        val replaced = from.copyResponse(change)
+        replace(from, replaced)
+        return replaced
     }
 
     fun remove(response: MockEnqueueResponse) {
