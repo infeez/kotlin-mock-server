@@ -6,7 +6,9 @@ import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.SocketPolicy
 
 class MockResponseBuilder {
-    internal var mockResponse = MockResponse()
+    var mockResponse = MockResponse()
+    var bodyDelayBuilder: MockResponseParameterDelayBuilder? = null
+    var headerDelayBuilder: MockResponseParameterDelayBuilder? = null
 
     var responseStatusCode: Int = 200
         set(value) {
@@ -30,15 +32,15 @@ class MockResponseBuilder {
     }
 
     fun bodyDelay(init: MockResponseParameterDelayBuilder.() -> Unit) {
-        val bodyDelayBuilder = MockResponseParameterDelayBuilder()
-        init(bodyDelayBuilder)
-        mockResponse.setBodyDelay(bodyDelayBuilder.delay, bodyDelayBuilder.unit)
+        bodyDelayBuilder = MockResponseParameterDelayBuilder()
+        init(bodyDelayBuilder!!)
+        mockResponse.setBodyDelay(bodyDelayBuilder!!.delay, bodyDelayBuilder!!.unit)
     }
 
     fun headersDelay(init: MockResponseParameterDelayBuilder.() -> Unit) {
-        val bodyDelayBuilder = MockResponseParameterDelayBuilder()
-        init(bodyDelayBuilder)
-        mockResponse.setHeadersDelay(bodyDelayBuilder.delay, bodyDelayBuilder.unit)
+        headerDelayBuilder = MockResponseParameterDelayBuilder()
+        init(headerDelayBuilder!!)
+        mockResponse.setHeadersDelay(headerDelayBuilder!!.delay, headerDelayBuilder!!.unit)
     }
 
     fun fromString(bodyString: String) {

@@ -600,6 +600,126 @@ class MockServerTest {
         assertEquals("""{"a":"a","b":1,"c":2,"d":55.5}""", response.body!!.string())
     }
 
+    @Test
+    fun `copyResponse mock test`() = withMockServer {
+        val mock1 = MockEnqueueResponse {
+            doResponseWithMatcher(rulePath eq "/some/path") {
+                responseStatusCode = 201
+                headers {
+                    "a" withValue "123"
+                }
+                bodyDelay {
+                    delay = 100
+                }
+                headersDelay {
+                    delay = 200
+                }
+                fromString(json {
+                    "a" to "a"
+                    "b" to 1
+                    "c" to 2L
+                    "d" to 3.0
+                })
+            }
+        }
+
+        val mock2 = mock1.copyResponse<StubModel> {
+            d = 55.5
+        }
+
+        mockScenario {
+            add(mock2)
+        }
+
+        val response = httpPost {
+            host = hostName
+            port = this@withMockServer.port
+            path = "/some/path"
+        }
+
+        assertEquals(mock2.mockResponseBuilder.bodyDelayBuilder!!.delay, 100)
+        assertEquals(mock2.mockResponseBuilder.headerDelayBuilder!!.delay, 200)
+
+        assertEquals("123", response.headers["a"])
+        assertEquals(201, response.code)
+        assertEquals("""{"a":"a","b":1,"c":2,"d":55.5}""", response.body!!.string())
+    }
+
+    @Test
+    fun `copyResponse mock not affect copied mock test`() = withMockServer {
+        val mock1 = MockEnqueueResponse {
+            doResponseWithMatcher(rulePath eq "/some/path") {
+                fromString(json {
+                    "a" to "a"
+                    "b" to 1
+                    "c" to 2L
+                    "d" to 3.0
+                })
+            }
+        }
+
+        mockScenario {
+            add(mock1)
+        }
+
+        val mock2 = mock1.copyResponse<StubModel> {
+            d = 55.5
+        }
+
+        val response = httpPost {
+            host = hostName
+            port = this@withMockServer.port
+            path = "/some/path"
+        }
+
+        assertEquals("""{"a":"a","b":1,"c":2,"d":3.0}""", response.body!!.string())
+    }
+
+    @Test
+    fun `replace mock response test`() = withMockServer {
+        val mock1 = MockEnqueueResponse {
+            doResponseWithMatcher(rulePath eq "/some/path") {
+                responseStatusCode = 201
+                headers {
+                    "a" withValue "123"
+                }
+                bodyDelay {
+                    delay = 100
+                }
+                headersDelay {
+                    delay = 200
+                }
+                fromString(json {
+                    "a" to "a"
+                    "b" to 1
+                    "c" to 2L
+                    "d" to 3.0
+                })
+            }
+        }
+
+        val scenario = mockScenario {
+            add(mock1)
+        }
+
+        val mock2 = scenario.replaceMockResponse<StubModel>(mock1) {
+            d = 55.5
+        }
+
+        val response = httpPost {
+            host = hostName
+            port = this@withMockServer.port
+            path = "/some/path"
+        }
+
+        assertEquals(mock2.mockResponseBuilder.bodyDelayBuilder!!.delay, 100)
+        assertEquals(mock2.mockResponseBuilder.headerDelayBuilder!!.delay, 200)
+
+        assertEquals("123", response.headers["a"])
+        assertEquals(201, response.code)
+        assertEquals("""{"a":"a","b":1,"c":2,"d":55.5}""", response.body!!.string())
+    }
+
     data class StubModel(
         var a: String,
         var b: Int,
