@@ -720,6 +720,81 @@ class MockServerTest {
         assertEquals("""{"a":"a","b":1,"c":2,"d":55.5}""", response.body!!.string())
     }
 
+    @Test
+    fun `body param converter one url multiple time test`() = withMockServer {
+        mockScenario {
+            add {
+                doResponseWithMatcher((rulePath eq "/some/path") and (ruleBody.withConverter<StubModel> {
+                    a == "a"
+                })) {
+                    fromString("response string a")
+                }
+            }
+            add {
+                doResponseWithMatcher((rulePath eq "/some/path") and (ruleBody.withConverter<StubModel> {
+                    a == "b"
+                })) {
+                    fromString("response string b")
+                }
+            }
+            add {
+                doResponseWithMatcher((rulePath eq "/some/path") and (ruleBody.withConverter<StubModel> {
+                    a == "c"
+                })) {
+                    fromString("response string c")
+                }
+            }
+        }
+
+        var response = httpPost {
+            host = hostName
+            body {
+                json {
+                    "a" to "a"
+                    "b" to 1
+                    "c" to 2L
+                    "d" to 3.0
+                }
+            }
+            port = this@withMockServer.port
+            path = "/some/path"
+        }
+
+        assertEquals("response string a", response.body!!.string())
+
+        response = httpPost {
+            host = hostName
+            body {
+                json {
+                    "a" to "b"
+                    "b" to 1
+                    "c" to 2L
+                    "d" to 3.0
+                }
+            }
+            port = this@withMockServer.port
+            path = "/some/path"
+        }
+
+        assertEquals("response string b", response.body!!.string())
+
+        response = httpPost {
+            host = hostName
+            body {
+                json {
+                    "a" to "c"
+                    "b" to 1
+                    "c" to 2L
+                    "d" to 3.0
+                }
+            }
+            port = this@withMockServer.port
+            path = "/some/path"
+        }
+
+        assertEquals("response string c", response.body!!.string())
+    }
+
     data class StubModel(
         var a: String,
         var b: Int,
