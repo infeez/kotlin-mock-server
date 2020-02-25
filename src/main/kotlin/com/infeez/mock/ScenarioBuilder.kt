@@ -28,8 +28,10 @@ class ScenarioBuilder(mockWebServer: MockWebServer) {
                     return resWithUrl.mockResponseBuilder.mockResponse
                 }
 
+                val path = request.path
+                val body = request.body.inputStream().bufferedReader().use { it.readText() }
                 for (res in responsesWithMatcher) {
-                    if (res.requestMatcher != null && res.requestMatcher?.invoke(request) == true) {
+                    if (res.requestMatcher != null && res.requestMatcher?.invoke(path, body) == true) {
                         return res.mockResponseBuilder.mockResponse
                     }
                 }

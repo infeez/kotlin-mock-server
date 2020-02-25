@@ -5,21 +5,20 @@ import com.infeez.mock.extensions.decodeUrl
 import com.infeez.mock.extensions.extractQueryParams
 import java.lang.reflect.Type
 import java.util.regex.Pattern
-import okhttp3.mockwebserver.RecordedRequest
 
-typealias RequestMatcher = (request: RecordedRequest) -> Boolean
+typealias RequestMatcher = (path: String?, body: String?) -> Boolean
 
 class PathMatcher(private val pattern: Pattern) : RequestMatcher {
-    override fun invoke(request: RecordedRequest): Boolean {
-        return request.path.takeUnless { it.isNullOrEmpty() }?.decodeUrl()?.split("?")?.first()?.let {
+    override fun invoke(path: String?, body: String?): Boolean {
+        return path.takeUnless { it.isNullOrEmpty() }?.decodeUrl()?.split("?")?.first()?.let {
             pattern.matcher(it).matches()
         } == true
     }
 }
 
 class QueryParamMatcher(private val param: String, private val pattern: Pattern) : RequestMatcher {
-    override fun invoke(request: RecordedRequest): Boolean {
-        return request.path.takeUnless { it.isNullOrEmpty() }?.decodeUrl()?.extractQueryParams()?.get(param)?.let {
+    override fun invoke(path: String?, body: String?): Boolean {
+        return path.takeUnless { it.isNullOrEmpty() }?.decodeUrl()?.extractQueryParams()?.get(param)?.let {
             pattern.matcher(it).matches()
         } == true
     }
@@ -29,8 +28,8 @@ class BodyParamMather<T>(
     private val matcher: T.() -> Boolean,
     private val bodyConverter: BodyConverter<T>
 ) : RequestMatcher {
-    override fun invoke(request: RecordedRequest): Boolean {
-        return matcher(bodyConverter.convert(request.body.inputStream().bufferedReader().use { it.readText() }))
+    override fun invoke(path: String?, body: String?): Boolean {
+        return matcher(bodyConverter.convert(body!!))
     }
 }
 
@@ -69,8 +68,8 @@ infix fun ruleParam.matches(regex: Regex) = matches(regex.toPattern())
 inline infix fun <reified T> ruleBody.withConverter(noinline matcher: T.() -> Boolean) = BodyParamMather(matcher, BodyConverter.BodyDataConverter(T::class.java))
 infix fun ruleBody.withString(matcher: String.() -> Boolean) = BodyParamMather(matcher, BodyConverter.BodyString)
 
-infix fun RequestMatcher.or(target: RequestMatcher): RequestMatcher = { request -> invoke(request) || target.invoke(request) }
-infix fun RequestMatcher.and(target: RequestMatcher): RequestMatcher = { request -> invoke(request) && target.invoke(request) }
+infix fun RequestMatcher.or(target: RequestMatcher): RequestMatcher = { p, b -> invoke(p, b) || target.invoke(p, b) }
+infix fun RequestMatcher.and(target: RequestMatcher): RequestMatcher = { p, b -> invoke(p, b) && target.invoke(p, b) }
 
 fun any() = Pattern.compile(".*")
 fun exact(text: String) = Pattern.compile(Pattern.quote(text))
