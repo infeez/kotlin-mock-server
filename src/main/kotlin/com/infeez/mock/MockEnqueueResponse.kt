@@ -2,6 +2,7 @@ package com.infeez.mock
 
 import com.infeez.mock.extensions.extractQueryParams
 import com.infeez.mock.matcher.RequestMatcher
+import java.lang.reflect.Type
 
 class MockEnqueueResponse(create: MockEnqueueResponse.() -> Unit) {
 
@@ -42,10 +43,10 @@ class MockEnqueueResponse(create: MockEnqueueResponse.() -> Unit) {
         return this
     }
 
-    inline fun <reified T> copyResponse(change: T.() -> Unit): MockEnqueueResponse {
+    inline fun <T> copyResponse(type: Type, change: T.() -> Unit): MockEnqueueResponse {
         val body = mockResponseBuilder.mockResponse.getBody() ?: error("Body may not by null!")
         val data = body.inputStream().bufferedReader().use { it.readText() }
-        val model = MockServerSettings.converterFactory!!.from<T>(data, T::class.java)
+        val model = MockServerSettings.converterFactory!!.from<T>(data, type)
         change(model)
         return MockEnqueueResponse {}.apply {
             this.url = this@MockEnqueueResponse.url
@@ -73,5 +74,9 @@ class MockEnqueueResponse(create: MockEnqueueResponse.() -> Unit) {
                 fromString(MockServerSettings.converterFactory!!.to(model))
             }
         }
+    }
+
+    inline fun <reified T> copyResponse(change: T.() -> Unit): MockEnqueueResponse {
+        return copyResponse(T::class.java, change)
     }
 }

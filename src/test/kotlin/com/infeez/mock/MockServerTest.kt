@@ -1,6 +1,7 @@
 package com.infeez.mock
 
 import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.infeez.mock.converter.ConverterFactory
 import com.infeez.mock.matcher.and
 import com.infeez.mock.matcher.endsWith
@@ -794,6 +795,40 @@ class MockServerTest {
 
         assertEquals("response string c", response.body!!.string())
     }
+
+    @Test
+    fun `change generic mock test`() = withMockServer {
+        val mock1 = MockEnqueueResponse {
+            doResponseWithMatcher(rulePath eq "/some/path") {
+                fromString("""{"items":[{"a":"a","b":1,"c":2,"d":3.0}]}""")
+            }
+        }
+
+        val scenario = mockScenario {
+            add(mock1)
+        }
+
+        scenario.replaceMockResponse<ListInfo<StubModel>>(object : TypeToken<ListInfo<StubModel>>() {}.type, mock1) {
+            items[0].apply {
+                a = "b"
+                b = 2
+                c = 3
+                d = 4.0
+            }
+        }
+
+        val response = httpPost {
+            host = hostName
+            port = this@withMockServer.port
+            path = "/some/path"
+        }
+
+        assertEquals("""{"items":[{"a":"b","b":2,"c":3,"d":4.0}]}""", response.body!!.string())
+    }
+
+    data class ListInfo<T>(
+        val items: List<T>
+    )
 
     data class StubModel(
         var a: String,

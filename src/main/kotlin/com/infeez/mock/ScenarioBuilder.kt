@@ -2,6 +2,7 @@ package com.infeez.mock
 
 import com.infeez.mock.extensions.decodeUrl
 import com.infeez.mock.extensions.extractQueryParams
+import java.lang.reflect.Type
 import java.net.HttpURLConnection
 import okhttp3.mockwebserver.Dispatcher
 import okhttp3.mockwebserver.MockResponse
@@ -74,6 +75,12 @@ class ScenarioBuilder(mockWebServer: MockWebServer) {
 
     inline fun <reified T> replaceMockResponse(from: MockEnqueueResponse, change: T.() -> Unit): MockEnqueueResponse {
         val replaced = from.copyResponse(change)
+        replace(from, replaced)
+        return replaced
+    }
+
+    inline fun <T> replaceMockResponse(type: Type, from: MockEnqueueResponse, change: T.() -> Unit): MockEnqueueResponse {
+        val replaced = from.copyResponse(type, change)
         replace(from, replaced)
         return replaced
     }
