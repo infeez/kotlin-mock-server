@@ -28,10 +28,7 @@ class ScenarioBuilder(mockWebServer: MockWebServer) {
                     responsesWithUrl[url]
                 }
 
-                if (urlWithParams.size == 2 &&
-                    resWithUrl?.queryParams != null &&
-                    decodedUrl.extractQueryParams() == resWithUrl.queryParams && url.checkUrlParamWithAsterisk(decodedUrl)
-                ) {
+                if (urlWithParams.size == 2 && resWithUrl?.queryParams != null && decodedUrl.extractQueryParams() == resWithUrl.queryParams) {
                     return resWithUrl.mockResponseBuilder.mockResponse
                 }
 
