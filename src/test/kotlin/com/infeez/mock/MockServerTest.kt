@@ -174,6 +174,25 @@ class MockServerTest {
     }
 
     @Test
+    fun `query empty value param test`() = withMockServer {
+        mockScenario {
+            add {
+                doResponseWithUrl("/mock/url?param1=1&param2=2&param3=") {
+                    fromString("response string")
+                }
+            }
+        }
+
+        val response = httpGet {
+            host = hostName
+            port = this@withMockServer.port
+            path = "/mock/url?param1=1&param2=2&param3="
+        }
+
+        assertEquals("response string", response.body!!.string())
+    }
+
+    @Test
     fun `reverse query test`() = withMockServer {
         mockScenario {
             add {
@@ -187,6 +206,25 @@ class MockServerTest {
             host = hostName
             port = this@withMockServer.port
             path = "/mock/url?param2=2&param1=1&param3=a"
+        }
+
+        assertEquals("response string", response.body!!.string())
+    }
+
+    @Test
+    fun `path param asterisk and query test`() = withMockServer {
+        mockScenario {
+            add {
+                doResponseWithUrl("/mock/*/url?param1=1&param2=2") {
+                    fromString("response string")
+                }
+            }
+        }
+
+        val response = httpGet {
+            host = hostName
+            port = this@withMockServer.port
+            path = "/mock/asterisk/url?param1=1&param2=2"
         }
 
         assertEquals("response string", response.body!!.string())
@@ -663,7 +701,7 @@ class MockServerTest {
             add(mock1)
         }
 
-        val mock2 = mock1.copyResponse<StubModel> {
+        mock1.copyResponse<StubModel> {
             d = 55.5
         }
 

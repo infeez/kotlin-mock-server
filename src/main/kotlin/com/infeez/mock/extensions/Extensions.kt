@@ -20,3 +20,18 @@ fun String.decodeUrl(encoding: String = "utf-8"): String {
 fun String.encodeUrl(encoding: String = "utf-8"): String {
     return URLEncoder.encode(this, encoding)
 }
+
+fun String.removeFirstAndLastSlashInUrl(): String {
+    return dropLastWhile { it == '/' }.dropWhile { it == '/' }
+}
+
+fun String.checkUrlParamWithAsterisk(targetUrl: String): Boolean {
+    val f = split("?")[0].removeFirstAndLastSlashInUrl().split("/").toMutableList()
+    val s = targetUrl.split("?")[0].removeFirstAndLastSlashInUrl().split("/").toMutableList()
+    while (f.count { it == "*" } > 0) {
+        s.removeAt(f.indexOf("*"))
+        f.remove("*")
+    }
+
+    return f == s
+}
