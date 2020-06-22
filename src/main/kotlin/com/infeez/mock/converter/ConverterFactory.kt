@@ -1,5 +1,3 @@
-@file:Suppress("UNCHECKED_CAST")
-
 package com.infeez.mock.converter
 
 import java.lang.reflect.Type
