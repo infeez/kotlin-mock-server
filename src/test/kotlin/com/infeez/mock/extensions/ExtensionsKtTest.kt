@@ -1,6 +1,7 @@
 package com.infeez.mock.extensions
 
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 import org.junit.Test
 
 class ExtensionsKtTest {
@@ -56,5 +57,31 @@ class ExtensionsKtTest {
         result = url.extractQueryParams()
 
         assertEquals(0, result.size)
+    }
+
+    @Test
+    fun `removeFirstAndLastSlashInUrl test`() {
+        assertEquals("b", "/b/".removeFirstAndLastSlashInUrl())
+        assertEquals("a/b", "a/b".removeFirstAndLastSlashInUrl())
+        assertEquals("a/b", "/a/b/".removeFirstAndLastSlashInUrl())
+        assertEquals("a/b/c/d", "/a/b/c/d/".removeFirstAndLastSlashInUrl())
+    }
+
+    @Test
+    fun `checkUrlParamWithAsterisk test`() {
+        assertTrue {
+            "a/*/b".checkUrlParamWithAsterisk("a/123/b")
+            "*/*/b".checkUrlParamWithAsterisk("a/123/b")
+            "*/*/*".checkUrlParamWithAsterisk("a/123/b")
+            "*/b".checkUrlParamWithAsterisk("123/b")
+            "*/*".checkUrlParamWithAsterisk("123/b")
+            "*".checkUrlParamWithAsterisk("123")
+            "a/b/c".checkUrlParamWithAsterisk("/a/b/c/")
+            "a/b".checkUrlParamWithAsterisk("/a/b/")
+            "a".checkUrlParamWithAsterisk("/a/")
+            "a/b/c".checkUrlParamWithAsterisk("a/b/c")
+            "a/b".checkUrlParamWithAsterisk("a/b")
+            "a".checkUrlParamWithAsterisk("a")
+        }
     }
 }

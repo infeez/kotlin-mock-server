@@ -66,6 +66,14 @@ infix fun ruleParam.matches(pattern: Pattern) = QueryParamMatcher(name, pattern)
 infix fun ruleParam.matches(regex: Regex) = matches(regex.toPattern())
 
 inline infix fun <reified T> ruleBody.withConverter(noinline matcher: T.() -> Boolean) = BodyParamMather(matcher, BodyConverter.BodyDataConverter(T::class.java))
+inline infix fun <reified T> ruleBody.matchWithBody(src: String) = object : RequestMatcher {
+    override fun invoke(path: String?, res: String?): Boolean {
+        val f = MockServerSettings.converterFactory!!.from<T>(src, T::class.java)
+        val s = MockServerSettings.converterFactory!!.from<T>(res!!, T::class.java)
+        return f == s
+    }
+}
+
 infix fun ruleBody.withString(matcher: String.() -> Boolean) = BodyParamMather(matcher, BodyConverter.BodyString)
 
 infix fun RequestMatcher.or(target: RequestMatcher): RequestMatcher = { p, b -> invoke(p, b) || target.invoke(p, b) }

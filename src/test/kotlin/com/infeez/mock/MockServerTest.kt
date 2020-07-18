@@ -6,6 +6,7 @@ import com.infeez.mock.converter.ConverterFactory
 import com.infeez.mock.matcher.and
 import com.infeez.mock.matcher.endsWith
 import com.infeez.mock.matcher.eq
+import com.infeez.mock.matcher.matchWithBody
 import com.infeez.mock.matcher.or
 import com.infeez.mock.matcher.ruleBody
 import com.infeez.mock.matcher.ruleParam
@@ -174,6 +175,25 @@ class MockServerTest {
     }
 
     @Test
+    fun `query empty value param test`() = withMockServer {
+        mockScenario {
+            add {
+                doResponseWithUrl("/mock/url?param1=1&param2=2&param3=") {
+                    fromString("response string")
+                }
+            }
+        }
+
+        val response = httpGet {
+            host = hostName
+            port = this@withMockServer.port
+            path = "/mock/url?param1=1&param2=2&param3="
+        }
+
+        assertEquals("response string", response.body!!.string())
+    }
+
+    @Test
     fun `reverse query test`() = withMockServer {
         mockScenario {
             add {
@@ -187,6 +207,25 @@ class MockServerTest {
             host = hostName
             port = this@withMockServer.port
             path = "/mock/url?param2=2&param1=1&param3=a"
+        }
+
+        assertEquals("response string", response.body!!.string())
+    }
+
+    @Test
+    fun `path param asterisk and query test`() = withMockServer {
+        mockScenario {
+            add {
+                doResponseWithUrl("/mock/*/url?param1=1&param2=2") {
+                    fromString("response string")
+                }
+            }
+        }
+
+        val response = httpGet {
+            host = hostName
+            port = this@withMockServer.port
+            path = "/mock/asterisk/url?param1=1&param2=2"
         }
 
         assertEquals("response string", response.body!!.string())
@@ -663,7 +702,7 @@ class MockServerTest {
             add(mock1)
         }
 
-        val mock2 = mock1.copyResponse<StubModel> {
+        mock1.copyResponse<StubModel> {
             d = 55.5
         }
 
@@ -824,6 +863,35 @@ class MockServerTest {
         }
 
         assertEquals("""{"items":[{"a":"b","b":2,"c":3,"d":4.0}]}""", response.body!!.string())
+    }
+
+    @Test
+    fun `matchWithBody test`() = withMockServer {
+        val mock1 = MockEnqueueResponse {
+            doResponseWithMatcher((rulePath eq "/some/path") and ruleBody.matchWithBody<StubModel>("""{"a":"a","b":1,"c":2,"d":3.0}""")) {
+                fromString("response string a")
+            }
+        }
+
+        mockScenario {
+            add(mock1)
+        }
+
+        val response = httpPost {
+            host = hostName
+            body {
+                json {
+                    "a" to "a"
+                    "b" to 1
+                    "c" to 2L
+                    "d" to 3.0
+                }
+            }
+            port = this@withMockServer.port
+            path = "/some/path"
+        }
+
+        assertEquals("response string a", response.body!!.string())
     }
 
     data class ListInfo<T>(

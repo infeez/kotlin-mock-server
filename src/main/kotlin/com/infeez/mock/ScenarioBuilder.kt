@@ -1,5 +1,6 @@
 package com.infeez.mock
 
+import com.infeez.mock.extensions.checkUrlParamWithAsterisk
 import com.infeez.mock.extensions.decodeUrl
 import com.infeez.mock.extensions.extractQueryParams
 import java.lang.reflect.Type
@@ -19,7 +20,13 @@ class ScenarioBuilder(mockWebServer: MockWebServer) {
             override fun dispatch(request: RecordedRequest): MockResponse {
                 val decodedUrl = request.path!!.decodeUrl()
                 val urlWithParams = decodedUrl.split("?")
-                val resWithUrl = responsesWithUrl[urlWithParams.first()]
+                val url = urlWithParams.first()
+
+                val resWithUrl = if (responsesWithUrl.keys.count { it.contains("*") } > 0) {
+                    responsesWithUrl.filter { it.key.checkUrlParamWithAsterisk(url) }.map { it.value }.first()
+                } else {
+                    responsesWithUrl[url]
+                }
 
                 if (urlWithParams.size == 2 && resWithUrl?.queryParams != null && decodedUrl.extractQueryParams() == resWithUrl.queryParams) {
                     return resWithUrl.mockResponseBuilder.mockResponse
