@@ -16,6 +16,7 @@ import com.infeez.mock.matcher.withConverter
 import com.infeez.mock.matcher.withString
 import io.github.rybalkinsd.kohttp.dsl.httpGet
 import io.github.rybalkinsd.kohttp.dsl.httpPost
+import io.github.rybalkinsd.kohttp.dsl.httpPut
 import io.github.rybalkinsd.kohttp.util.json
 import java.lang.reflect.Type
 import java.util.concurrent.TimeUnit
@@ -892,6 +893,49 @@ class MockServerTest {
         }
 
         assertEquals("response string a", response.body!!.string())
+    }
+
+    @Test
+    fun `some mock type test`() {
+        val mockServer1 = MockWebServer()
+        val mockServer2 = MockWebServer()
+        mockServer1.start()
+        mockServer2.start()
+
+        mockServer1.mockScenario {
+            add {
+                doResponseWithUrl(RequestMethod.POST, "/one") {
+                    fromString("one")
+                }
+            }
+        }
+
+        mockServer2.mockScenario {
+            add {
+                doResponseWithUrl(RequestMethod.PUT, "/two") {
+                    fromString("two")
+                }
+            }
+        }
+
+        val response1 = httpPost {
+            host = mockServer1.hostName
+            port = mockServer1.port
+            path = "/one"
+        }
+
+        assertEquals("one", response1.body!!.string())
+
+        val response2 = httpPut {
+            host = mockServer2.hostName
+            port = mockServer2.port
+            path = "/two"
+        }
+
+        assertEquals("two", response2.body!!.string())
+
+        mockServer1.shutdown()
+        mockServer2.shutdown()
     }
 
     data class ListInfo<T>(

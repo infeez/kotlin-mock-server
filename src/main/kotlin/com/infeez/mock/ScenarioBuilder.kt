@@ -21,6 +21,7 @@ class ScenarioBuilder(mockWebServer: MockWebServer) {
                 val decodedUrl = request.path!!.decodeUrl()
                 val urlWithParams = decodedUrl.split("?")
                 val url = urlWithParams.first()
+                val method = request.method
 
                 val resWithUrl = if (responsesWithUrl.keys.count { it.contains("*") } > 0) {
                     responsesWithUrl.filter { it.key.checkUrlParamWithAsterisk(url) }.map { it.value }.first()
@@ -28,18 +29,18 @@ class ScenarioBuilder(mockWebServer: MockWebServer) {
                     responsesWithUrl[url]
                 }
 
-                if (urlWithParams.size == 2 && resWithUrl?.queryParams != null && decodedUrl.extractQueryParams() == resWithUrl.queryParams) {
+                if (checkRequestMethod(resWithUrl?.requestMethod, method) && urlWithParams.size == 2 && resWithUrl?.queryParams != null && decodedUrl.extractQueryParams() == resWithUrl.queryParams) {
                     return resWithUrl.mockResponseBuilder.mockResponse
                 }
 
-                if (resWithUrl?.mockResponseBuilder?.mockResponse != null) {
+                if (checkRequestMethod(resWithUrl?.requestMethod, method) && resWithUrl?.mockResponseBuilder?.mockResponse != null) {
                     return resWithUrl.mockResponseBuilder.mockResponse
                 }
 
                 val path = request.path
                 val body = request.body.inputStream().bufferedReader().use { it.readText() }
                 for (res in responsesWithMatcher) {
-                    if (res.requestMatcher != null && res.requestMatcher?.invoke(path, body) == true) {
+                    if (checkRequestMethod(resWithUrl?.requestMethod, method) && res.requestMatcher != null && res.requestMatcher?.invoke(path, body) == true) {
                         return res.mockResponseBuilder.mockResponse
                     }
                 }
@@ -95,6 +96,14 @@ class ScenarioBuilder(mockWebServer: MockWebServer) {
     fun remove(response: MockEnqueueResponse) {
         responsesWithUrl = responsesWithUrl.filterValues { it != response }.toMutableMap()
         responsesWithMatcher.removeAll { it == response }
+    }
+
+    private fun checkRequestMethod(src: RequestMethod?, trg: String?): Boolean {
+        if (src == null || src == RequestMethod.ANY) {
+            return true
+        }
+
+        return src.method == trg
     }
 }
 

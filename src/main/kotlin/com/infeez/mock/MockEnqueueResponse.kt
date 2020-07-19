@@ -9,6 +9,7 @@ class MockEnqueueResponse(create: MockEnqueueResponse.() -> Unit) {
     var url: String? = null
     var requestMatcher: RequestMatcher? = null
     var queryParams: Map<String, String>? = null
+    var requestMethod: RequestMethod = RequestMethod.ANY
     lateinit var mockResponseBuilder: MockResponseBuilder
 
     init {
@@ -28,10 +29,20 @@ class MockEnqueueResponse(create: MockEnqueueResponse.() -> Unit) {
         this.mockResponseBuilder = mockResponseBuilder
     }
 
+    fun doResponseWithUrl(requestMethod: RequestMethod, url: String, init: MockResponseBuilder.() -> Unit) {
+        this.requestMethod = requestMethod
+        doResponseWithUrl(url, init)
+    }
+
     fun doResponseWithMatcher(requestMatcher: RequestMatcher, init: MockResponseBuilder.() -> Unit) {
         val mockResponseBuilder = MockResponseBuilder().apply(init)
         this.requestMatcher = requestMatcher
         this.mockResponseBuilder = mockResponseBuilder
+    }
+
+    fun doResponseWithMatcher(requestMethod: RequestMethod, requestMatcher: RequestMatcher, init: MockResponseBuilder.() -> Unit) {
+        this.requestMethod = requestMethod
+        doResponseWithMatcher(requestMatcher, init)
     }
 
     inline fun <reified T> changeResponse(change: T.() -> Unit): MockEnqueueResponse {
