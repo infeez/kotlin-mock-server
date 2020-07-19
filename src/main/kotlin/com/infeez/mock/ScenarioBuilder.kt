@@ -40,7 +40,7 @@ class ScenarioBuilder(mockWebServer: MockWebServer) {
                 val path = request.path
                 val body = request.body.inputStream().bufferedReader().use { it.readText() }
                 for (res in responsesWithMatcher) {
-                    if (checkRequestMethod(resWithUrl?.requestMethod, method) && res.requestMatcher != null && res.requestMatcher?.invoke(path, body) == true) {
+                    if (checkRequestMethod(res.requestMethod, method) && res.requestMatcher != null && res.requestMatcher?.invoke(path, body) == true) {
                         return res.mockResponseBuilder.mockResponse
                     }
                 }
