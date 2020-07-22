@@ -233,6 +233,25 @@ class MockServerTest {
     }
 
     @Test
+    fun `path param asterisk last and query test`() = withMockServer {
+        mockScenario {
+            add {
+                doResponseWithUrl("/mock/*") {
+                    fromString("response string")
+                }
+            }
+        }
+
+        val response = httpGet {
+            host = hostName
+            port = this@withMockServer.port
+            path = "/mock/123"
+        }
+
+        assertEquals("response string", response.body!!.string())
+    }
+
+    @Test
     fun `path eq matcher test`() = withMockServer {
         mockScenario {
             add {
@@ -936,6 +955,28 @@ class MockServerTest {
 
         mockServer1.shutdown()
         mockServer2.shutdown()
+    }
+
+    @Test
+    fun `double read body test`() = withMockServer {
+        mockScenario {
+            add(MockEnqueueResponse {
+                doResponseWithMatcher(rulePath eq "/some/path") {
+                    fromString("response string a")
+                }
+            })
+        }
+
+        httpPost {
+            host = this@withMockServer.hostName
+            port = this@withMockServer.port
+            path = "/some/path"
+            body {
+                string("request string a")
+            }
+        }
+
+        assertEquals("request string a", takeRequest().body.readUtf8())
     }
 
     data class ListInfo<T>(
