@@ -82,6 +82,7 @@ class ExtensionsKtTest {
             "a/b/c".checkUrlParamWithAsterisk("a/b/c")
             "a/b".checkUrlParamWithAsterisk("a/b")
             "a".checkUrlParamWithAsterisk("a")
+            "a/123/*".checkUrlParamWithAsterisk("a/123/b")
         }
     }
 }
