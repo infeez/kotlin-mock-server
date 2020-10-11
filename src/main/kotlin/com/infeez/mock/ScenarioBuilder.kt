@@ -3,6 +3,14 @@ package com.infeez.mock
 import com.infeez.mock.extensions.checkUrlParamWithAsterisk
 import com.infeez.mock.extensions.decodeUrl
 import com.infeez.mock.extensions.extractQueryParams
+import io.github.rybalkinsd.kohttp.dsl.context.HttpContext
+import io.github.rybalkinsd.kohttp.dsl.context.HttpPostContext
+import io.github.rybalkinsd.kohttp.dsl.httpDelete
+import io.github.rybalkinsd.kohttp.dsl.httpGet
+import io.github.rybalkinsd.kohttp.dsl.httpHead
+import io.github.rybalkinsd.kohttp.dsl.httpPatch
+import io.github.rybalkinsd.kohttp.dsl.httpPost
+import io.github.rybalkinsd.kohttp.dsl.httpPut
 import java.lang.reflect.Type
 import java.net.HttpURLConnection
 import okhttp3.mockwebserver.Dispatcher
@@ -14,6 +22,8 @@ class ScenarioBuilder(mockWebServer: MockWebServer) {
 
     private var responsesWithUrl = mutableMapOf<String, MockEnqueueResponse>()
     private var responsesWithMatcher = mutableListOf<MockEnqueueResponse>()
+
+    var mockServerBehavior: MockServerBehavior = MockServerBehavior.ErrorWhenMockNotFound
 
     init {
         mockWebServer.dispatcher = object : Dispatcher() {
@@ -45,7 +55,14 @@ class ScenarioBuilder(mockWebServer: MockWebServer) {
                     }
                 }
 
-                return MockResponse().setResponseCode(HttpURLConnection.HTTP_NOT_FOUND)
+                return when (mockServerBehavior) {
+                    MockServerBehavior.ErrorWhenMockNotFound -> {
+                        MockResponse().setResponseCode(HttpURLConnection.HTTP_NOT_FOUND)
+                    }
+                    MockServerBehavior.PassWhenMockNotFound -> {
+                        failSafe(request)
+                    }
+                }
             }
         }
     }
@@ -104,6 +121,44 @@ class ScenarioBuilder(mockWebServer: MockWebServer) {
         }
 
         return src.method == trg
+    }
+
+    private fun failSafe(request: RecordedRequest): MockResponse {
+        val urlSplited = MockServerSettings.failSafeServerUrl.replace("""http:\\""", "").split(":")
+        val host = urlSplited[0]
+        val port = if (urlSplited.size == 2) urlSplited[1].toInt() else null
+
+        val initGet: HttpContext.() -> Unit = {
+            this.host = host
+            this.port = port
+            this.path = request.path
+            header { request.headers.toMultimap().map { it.key to it.value.first() } }
+        }
+
+        val initPost: HttpPostContext.() -> Unit = {
+            this.host = host
+            this.port = port
+            this.path = request.path
+            header { request.headers.toMultimap().map { it.key to it.value.first() } }
+            body { bytes(request.body.readByteArray()) }
+        }
+        val response = when (request.method) {
+            "POST" -> httpPost(init = initPost)
+            "PUT" -> httpPut(init = initPost)
+            "DELETE" -> httpDelete(init = initPost)
+            "PATCH" -> httpPatch(init = initPost)
+            "HEAD" -> httpHead(init = initGet)
+            "GET" -> httpGet(init = initGet)
+            else -> {
+                error("Unknown http method type: ${request.method}")
+            }
+        }
+
+        return MockResponse().apply {
+            headers = response.headers
+            response.body?.let { setBody(it.string()) }
+            setResponseCode(response.code)
+        }
     }
 }
 

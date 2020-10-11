@@ -24,6 +24,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.SocketPolicy
+import org.junit.After
 import org.junit.Before
 import org.junit.Test
 
@@ -43,6 +44,11 @@ class MockServerTest {
     @Before
     fun setUp() {
         MockServerSettings.converterFactory = gsonConverterFactory
+    }
+
+    @After
+    fun after() {
+        MockServerSettings.failSafeServerUrl = ""
     }
 
     @Test
@@ -977,6 +983,46 @@ class MockServerTest {
         }
 
         assertEquals("request string a", takeRequest().body.readUtf8())
+    }
+
+    @Test
+    fun `pass request test`() = withMockServer {
+        mockScenario {
+            mockServerBehavior = MockServerBehavior.PassWhenMockNotFound
+        }
+
+        // fail safe server
+        withMockServer failSafeServer@{
+            MockServerSettings.failSafeServerUrl = """http:\\""" + this@failSafeServer.hostName + ":" + this@failSafeServer.port
+            this@failSafeServer.mockScenario {
+                add(MockEnqueueResponse {
+                    doResponseWithMatcher(rulePath eq "/some/path") {
+                        fromString("response string from fail safe server")
+                    }
+                })
+            }
+
+            val response = httpPost {
+                host = this@withMockServer.hostName
+                port = this@withMockServer.port
+                path = "/some/path"
+                header {
+                    "a" to "1"
+                    "b" to "2"
+                    "c" to "3"
+                }
+                body {
+                    string("request string a")
+                }
+            }
+
+            assertEquals("response string from fail safe server", response.body!!.string())
+            takeRequest().run {
+                assertEquals("1", headers["a"])
+                assertEquals("2", headers["b"])
+                assertEquals("3", headers["c"])
+            }
+        }
     }
 
     data class ListInfo<T>(
