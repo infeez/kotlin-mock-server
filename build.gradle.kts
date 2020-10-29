@@ -1,5 +1,5 @@
 group = "kotlin-mock-server"
-version = "0.7.4"
+version = "0.7.5"
 
 plugins {
     java

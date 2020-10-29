@@ -13,6 +13,7 @@ import io.github.rybalkinsd.kohttp.dsl.httpPost
 import io.github.rybalkinsd.kohttp.dsl.httpPut
 import java.lang.reflect.Type
 import java.net.HttpURLConnection
+import java.net.URI
 import okhttp3.mockwebserver.Dispatcher
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
@@ -124,20 +125,16 @@ class ScenarioBuilder(mockWebServer: MockWebServer) {
     }
 
     private fun failSafe(request: RecordedRequest): MockResponse {
-        val urlSplited = MockServerSettings.failSafeServerUrl.replace("""http:\\""", "").split(":")
-        val host = urlSplited[0]
-        val port = if (urlSplited.size == 2) urlSplited[1].toInt() else null
-
+        val uri = URI(MockServerSettings.failSafeServerUrl)
         val initGet: HttpContext.() -> Unit = {
-            this.host = host
-            this.port = port
+            this.host = uri.host
+            this.port = uri.port
             this.path = request.path
             header { request.headers.toMultimap().map { it.key to it.value.first() } }
         }
-
         val initPost: HttpPostContext.() -> Unit = {
-            this.host = host
-            this.port = port
+            this.host = uri.host
+            this.port = uri.port
             this.path = request.path
             header { request.headers.toMultimap().map { it.key to it.value.first() } }
             body { bytes(request.body.readByteArray()) }
