@@ -993,7 +993,7 @@ class MockServerTest {
 
         // fail safe server
         withMockServer failSafeServer@{
-            MockServerSettings.failSafeServerUrl = """http:\\""" + this@failSafeServer.hostName + ":" + this@failSafeServer.port
+            MockServerSettings.failSafeServerUrl = """http://""" + this@failSafeServer.hostName + ":" + this@failSafeServer.port
             this@failSafeServer.mockScenario {
                 add(MockEnqueueResponse {
                     doResponseWithMatcher(rulePath eq "/some/path") {
