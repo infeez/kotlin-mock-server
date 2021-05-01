@@ -2,8 +2,13 @@ package com.infeez.mock
 
 import com.infeez.mock.extensions.extractQueryParams
 import com.infeez.mock.matcher.RequestMatcher
+import com.infeez.mock.util.RequestMethod
 import java.lang.reflect.Type
 
+@Deprecated(
+    message = "Please use new API for mock. See more in documentation.",
+    replaceWith = ReplaceWith("MockResponseContext", "com.infeez.mock.dsl.context")
+)
 class MockEnqueueResponse(create: MockEnqueueResponse.() -> Unit) {
 
     var url: String? = null

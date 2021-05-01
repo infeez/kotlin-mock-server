@@ -1,9 +1,9 @@
 group = "kotlin-mock-server"
-version = "0.7.5"
+version = "1.0.0-PreAlpha"
 
 plugins {
     java
-    kotlin("jvm") version "1.3.61"
+    kotlin("jvm") version "1.4.31"
     id("maven")
     id("org.jlleitschuh.gradle.ktlint") version "9.1.1"
 }
@@ -16,8 +16,10 @@ dependencies {
     implementation(kotlin("stdlib"))
     implementation(kotlin("reflect"))
     implementation("com.squareup.okhttp3", "mockwebserver", "4.2.1")
-    implementation("io.github.rybalkinsd", "kohttp", "0.12.0")
+    implementation("io.netty", "netty-codec-http", "4.1.59.Final")
+    implementation("io.netty", "netty-transport-native-epoll", "4.1.59.Final")
 
+    testImplementation("io.github.rybalkinsd", "kohttp", "0.12.0")
     testImplementation("com.google.code.gson", "gson", "2.8.6")
     testImplementation(kotlin("test-junit"))
 }

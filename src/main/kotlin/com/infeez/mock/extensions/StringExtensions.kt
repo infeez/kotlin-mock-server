@@ -22,7 +22,21 @@ fun String.encodeUrl(encoding: String = "utf-8"): String {
 }
 
 fun String.removeFirstAndLastSlashInUrl(): String {
-    return dropLastWhile { it == '/' }.dropWhile { it == '/' }
+    if (isEmpty()) {
+        return this
+    }
+
+    var result = this
+
+    if (result.first() == '/') {
+        result = result.substring(1, result.length)
+    }
+
+    if (result.last() == '/') {
+        result = result.substring(0, result.length - 1)
+    }
+
+    return result
 }
 
 fun String.checkUrlParamWithAsterisk(targetUrl: String): Boolean {

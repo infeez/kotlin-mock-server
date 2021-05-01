@@ -1,6 +1,7 @@
 package com.infeez.mock
 
 import com.infeez.mock.converter.ConverterFactory
+import com.infeez.mock.mockmodel.MockWebResponse
 
 object MockServerSettings {
 
@@ -19,4 +20,6 @@ object MockServerSettings {
             }
             return field
         }
+
+    var defaultResponse: MockWebResponse? = null
 }

@@ -1,4 +1,4 @@
-package com.infeez.mock
+package com.infeez.mock.util
 
 sealed class RequestMethod(val method: String) {
     object ANY : RequestMethod("ANY")

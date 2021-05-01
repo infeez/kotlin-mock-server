@@ -5,6 +5,10 @@ import java.io.InputStream
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.SocketPolicy
 
+@Deprecated(
+    message = "Please use new API for mock. See more in documentation.",
+    replaceWith = ReplaceWith("customMockServer(server, context, settings)", "com.infeez.mock.dsl")
+)
 class MockResponseBuilder {
     var mockResponse = MockResponse()
     var bodyDelayBuilder: MockResponseParameterDelayBuilder? = null

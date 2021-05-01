@@ -3,28 +3,22 @@ package com.infeez.mock
 import com.infeez.mock.extensions.checkUrlParamWithAsterisk
 import com.infeez.mock.extensions.decodeUrl
 import com.infeez.mock.extensions.extractQueryParams
-import io.github.rybalkinsd.kohttp.dsl.context.HttpContext
-import io.github.rybalkinsd.kohttp.dsl.context.HttpPostContext
-import io.github.rybalkinsd.kohttp.dsl.httpDelete
-import io.github.rybalkinsd.kohttp.dsl.httpGet
-import io.github.rybalkinsd.kohttp.dsl.httpHead
-import io.github.rybalkinsd.kohttp.dsl.httpPatch
-import io.github.rybalkinsd.kohttp.dsl.httpPost
-import io.github.rybalkinsd.kohttp.dsl.httpPut
+import com.infeez.mock.util.RequestMethod
 import java.lang.reflect.Type
 import java.net.HttpURLConnection
-import java.net.URI
 import okhttp3.mockwebserver.Dispatcher
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.RecordedRequest
 
+@Deprecated(
+    message = "Please use new API for mock. See more in documentation.",
+    replaceWith = ReplaceWith("MockServerContext(server, settings)", "com.infeez.mock.dsl.context")
+)
 class ScenarioBuilder(mockWebServer: MockWebServer) {
 
     private var responsesWithUrl = mutableMapOf<String, MockEnqueueResponse>()
     private var responsesWithMatcher = mutableListOf<MockEnqueueResponse>()
-
-    var mockServerBehavior: MockServerBehavior = MockServerBehavior.ErrorWhenMockNotFound
 
     init {
         mockWebServer.dispatcher = object : Dispatcher() {
@@ -56,14 +50,7 @@ class ScenarioBuilder(mockWebServer: MockWebServer) {
                     }
                 }
 
-                return when (mockServerBehavior) {
-                    MockServerBehavior.ErrorWhenMockNotFound -> {
-                        MockResponse().setResponseCode(HttpURLConnection.HTTP_NOT_FOUND)
-                    }
-                    MockServerBehavior.PassWhenMockNotFound -> {
-                        failSafe(request)
-                    }
-                }
+                return MockResponse().setResponseCode(HttpURLConnection.HTTP_NOT_FOUND)
             }
         }
     }
@@ -123,48 +110,22 @@ class ScenarioBuilder(mockWebServer: MockWebServer) {
 
         return src.method == trg
     }
-
-    private fun failSafe(request: RecordedRequest): MockResponse {
-        val uri = URI(MockServerSettings.failSafeServerUrl)
-        val initGet: HttpContext.() -> Unit = {
-            this.host = uri.host
-            this.port = uri.port
-            this.path = request.path
-            header { request.headers.toMultimap().map { it.key to it.value.first() } }
-        }
-        val initPost: HttpPostContext.() -> Unit = {
-            this.host = uri.host
-            this.port = uri.port
-            this.path = request.path
-            header { request.headers.toMultimap().map { it.key to it.value.first() } }
-            body { bytes(request.body.readByteArray()) }
-        }
-        val response = when (request.method) {
-            "POST" -> httpPost(init = initPost)
-            "PUT" -> httpPut(init = initPost)
-            "DELETE" -> httpDelete(init = initPost)
-            "PATCH" -> httpPatch(init = initPost)
-            "HEAD" -> httpHead(init = initGet)
-            "GET" -> httpGet(init = initGet)
-            else -> {
-                error("Unknown http method type: ${request.method}")
-            }
-        }
-
-        return MockResponse().apply {
-            headers = response.headers
-            response.body?.let { setBody(it.string()) }
-            setResponseCode(response.code)
-        }
-    }
 }
 
+@Deprecated(
+    message = "Please use new API for mock. See more in documentation.",
+    replaceWith = ReplaceWith("customMockServer(server, context, settings)", "com.infeez.mock.dsl")
+)
 fun MockWebServer.mockScenario(create: ScenarioBuilder.() -> Unit): ScenarioBuilder {
     val scenarioBuilder = ScenarioBuilder(this)
     create(scenarioBuilder)
     return scenarioBuilder
 }
 
+@Deprecated(
+    message = "Please use new API for mock. See more in documentation.",
+    replaceWith = ReplaceWith("customMockServer(server, context, settings)", "com.infeez.mock.dsl")
+)
 fun withMockServer(mockServer: MockWebServer.() -> Unit) {
     MockWebServer().run {
         start()

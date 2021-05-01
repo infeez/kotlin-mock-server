@@ -4,7 +4,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import org.junit.Test
 
-class ExtensionsKtTest {
+class StringExtensionsKtTest {
 
     @Test
     fun `extract query params test`() {
