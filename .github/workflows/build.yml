@@ -1,0 +1,22 @@
+name: CI
+
+on:
+  push:
+    branches: [ new-server ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run a multi-line script
+        uses: actions/setup-java@v2
+        with:
+          java-version: '8'
+          distribution: 'adopt'
+      - name: Build with Gradle
+        run: ./gradlew build
+      - uses: actions/upload-artifact@v2
+        with:
+          name: Package
+          path: build/libs
