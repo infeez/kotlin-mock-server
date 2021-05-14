@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [ new-server ]
+    branches: [ feature/new-server ]
 
 jobs:
   build:

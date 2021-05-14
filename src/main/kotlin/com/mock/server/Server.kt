@@ -11,7 +11,6 @@ abstract class Server(
 ) : ExternalResource(), Closeable {
 
     // TODO change logger to slf4j + logback + kotlin-logging
-    // TEST
     protected val logger: Logger = Logger.getLogger(javaClass.name)
 
     var onDispatch: ((requestMock: MockWebRequest) -> MockWebResponse) = {
