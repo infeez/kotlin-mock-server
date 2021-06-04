@@ -11,7 +11,7 @@ import java.lang.reflect.Type
  */
 interface ConverterFactory {
     /**
-     * This method is needed to convert string to [T]
+     * This method is needed to convert [String] to [T]
      *
      * @param value - [String] value to convert.
      * @param type  - The [Type] of your class
@@ -21,7 +21,7 @@ interface ConverterFactory {
     fun <T> from(value: String, type: Type): T
 
     /**
-     * This method is needed to convert [T] to string
+     * This method is needed to convert [T] to [String]
      *
      * @param value - [T] value to convert.
      *

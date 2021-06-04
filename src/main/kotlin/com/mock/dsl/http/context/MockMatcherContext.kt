@@ -12,8 +12,16 @@ import com.mock.matcher.impl.PathMatcher
 import com.mock.matcher.impl.QueryParamMatcher
 import java.util.regex.Pattern
 
+/**
+ * This class realise DSL-context to build url matcher.
+ *
+ */
 class MockMatcherContext {
 
+    /**
+     * Matcher for url path. With [Path]-context.
+     *
+     */
     fun path(matcher: Path.() -> RequestMatcher) = matcher(Path)
 
     val path = Path

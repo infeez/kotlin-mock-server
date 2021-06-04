@@ -45,8 +45,8 @@ fun mock(
 /**
  * DSL method for create and return HTTP mock by HTTP-method type and combined matcher.
  *
- * @param requestMethod [RequestMethod] - Set HTTP-method type
- * @param matcher [MockMatcherContext]  - DSL context for build matcher for request in your client.
+ * @param requestMethod [RequestMethod]       - Set HTTP-method type
+ * @param matcher       [MockMatcherContext]  - DSL context for build matcher for request in your client.
  *
  * @return a mock [Mock] type for use in MockServer. Also you need to add this created object to your mock list or MockServer mocks.
  */
@@ -63,7 +63,7 @@ fun mock(
 /**
  * DSL method for create and return HTTP mock by combined matcher.
  *
- * @param matcher [MockMatcherContext]  - DSL context for build matcher for request in your client.
+ * @param matcher       [MockMatcherContext]  - DSL context for build matcher for request in your client.
  *
  * @return a mock [Mock] type for use in MockServer. Also you need to add this created object to your mock list or MockServer mocks.
  */
