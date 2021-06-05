@@ -1,13 +1,15 @@
 package com.mock.dsl.http.context
 
-import com.mock.MockServerSettings
+import com.mock.MockServerConfiguration
 import com.mock.converter.BodyConverter.BodyDataConverter
 import com.mock.converter.BodyConverter.BodyString
 import com.mock.dsl.http.context.MockMatcherContext.MockMatherRule.Body
-import com.mock.dsl.http.context.MockMatcherContext.MockMatherRule.Param
+import com.mock.dsl.http.context.MockMatcherContext.MockMatherRule.Header
 import com.mock.dsl.http.context.MockMatcherContext.MockMatherRule.Path
+import com.mock.dsl.http.context.MockMatcherContext.MockMatherRule.Query
 import com.mock.matcher.RequestMatcher
 import com.mock.matcher.impl.BodyParamMather
+import com.mock.matcher.impl.HeaderParamMatcher
 import com.mock.matcher.impl.PathMatcher
 import com.mock.matcher.impl.QueryParamMatcher
 import java.util.regex.Pattern
@@ -19,46 +21,104 @@ import java.util.regex.Pattern
 class MockMatcherContext {
 
     /**
-     * Matcher for url path. With [Path]-context.
+     * Matcher for header request. With [Header] DSL-context.
+     *
+     */
+    fun header(name: String, matcher: Header.() -> RequestMatcher) = matcher(Header(name))
+
+    /**
+     * Matcher for header request.
+     *
+     */
+    fun header(name: String) = Header(name)
+
+    /**
+     * Matcher for url path. With [Path] DSL-context.
      *
      */
     fun path(matcher: Path.() -> RequestMatcher) = matcher(Path)
 
+    /**
+     * Matcher for url path.
+     *
+     */
     val path = Path
 
-    fun param(param: String, matcher: Param.() -> RequestMatcher) = matcher(Param(param))
+    /**
+     * Matcher for query in url. With [Query] DSL-context.
+     *
+     */
+    fun query(param: String, matcher: Query.() -> RequestMatcher) = matcher(Query(param))
 
-    fun param(param: String) = Param(param)
+    /**
+     * Matcher for query in url.
+     *
+     */
+    fun query(param: String) = Query(param)
 
+    /**
+     * Matcher for body in request. With [Body] DSL-context.
+     *
+     */
     fun body(matcher: Body.() -> RequestMatcher) = matcher(Body)
 
+    /**
+     * Matcher for body in request.
+     *
+     */
     val body = Body
 
     sealed class MockMatherRule {
+        data class Header(val name: String) : MockMatherRule()
         object Path : MockMatherRule()
-        data class Param(val name: String) : MockMatherRule()
+        data class Query(val name: String) : MockMatherRule()
         object Body : MockMatherRule() {
-            inline fun <reified T> bodyMarch(noinline matcher: T.() -> Boolean) = BodyParamMather(matcher, BodyDataConverter(MockServerSettings.converterFactory!!, T::class.java))
+            inline fun <reified T> bodyMarch(noinline matcher: T.() -> Boolean) = BodyParamMather(matcher, BodyDataConverter(MockServerConfiguration.converterFactory!!, T::class.java))
             inline fun <reified T> bodyEq(src: String) = object : RequestMatcher {
-                override fun invoke(path: String?, res: String?): Boolean {
-                    return BodyDataConverter<T>(MockServerSettings.converterFactory!!, T::class.java).let {
+                override fun invoke(path: String?, res: String?, headers: Map<String, String>): Boolean {
+                    return BodyDataConverter<T>(MockServerConfiguration.converterFactory!!, T::class.java).let {
                         it.convert(src) == it.convert(res!!)
                     }
                 }
             }
         }
 
-        fun any(): RequestMatcher = { _, _ -> true }
+        /**
+         * A matcher to any values. Always return true.
+         *
+         */
+        fun any(): RequestMatcher = { _, _, _ -> true }
 
+        /**
+         * A matcher to accurately compare strings.
+         *
+         * @param value - [String] value for match.
+         */
         fun eq(value: String) = matches(exact(value))
 
+        /**
+         * A matcher triggered if the string starts with the specified value.
+         *
+         * @param value - [String] value for match.
+         */
         fun startWith(value: String) = matches(prefix(value))
 
+        /**
+         * A matcher triggered if the string ends with the specified value.
+         *
+         * @param value - [String] value for match.
+         */
         fun endsWith(value: String) = matches(suffix(value))
 
+        /**
+         * A matcher takes any Regex pattern for match string.
+         *
+         * @param pattern [Pattern] a regex patter for match.
+         */
         fun matches(pattern: Pattern) = when (this) {
+            is Header -> HeaderParamMatcher(name, pattern)
             is Body -> BodyParamMather({ pattern.matcher(this).matches() }, BodyString)
-            is Param -> QueryParamMatcher(name, pattern)
+            is Query -> QueryParamMatcher(name, pattern)
             is Path -> PathMatcher(pattern)
         }
 

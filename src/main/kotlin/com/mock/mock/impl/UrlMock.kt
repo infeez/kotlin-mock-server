@@ -14,8 +14,8 @@ class UrlMock(
     private val mockUrl: String = mockUrlSrc.split("?").first().let { u -> u.takeUnless { it.startsWith("/") }?.let { "/$it" } ?: u }
     private val queryParams: Map<String, String> = mockUrlSrc.extractQueryParams()
 
-    override fun isCoincided(path: String, method: String?, body: String?): Boolean {
-        val isCoincided = super.isCoincided(path, method, body)
+    override fun isCoincided(path: String, method: String?, body: String?, headers: Map<String, String>): Boolean {
+        val isCoincided = super.isCoincided(path, method, body, headers)
         if (!isCoincided) {
             return false
         }

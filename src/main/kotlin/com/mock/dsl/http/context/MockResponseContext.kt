@@ -18,8 +18,8 @@ class MockResponseContext {
      * Set delay to mock response.
      *
      *
-     * @param time [Long]           - delay time.
-     * @param timeUnit [TimeUnit]   - delay time unit. MILLISECONDS by default.
+     * @param time     - [Long] delay time.
+     * @param timeUnit - [TimeUnit] delay time unit. MILLISECONDS by default.
      */
     fun delay(time: Long, timeUnit: TimeUnit = MILLISECONDS) {
         mwr = mwr.copy(mockWebResponseParams = mwr.mockWebResponseParams.copy(delay = timeUnit.toMillis(time)))
@@ -28,7 +28,7 @@ class MockResponseContext {
     /**
      * Set response HTTP-code.
      *
-     * @param code [Int] - HTTP-code.
+     * @param code - [Int] HTTP-code.
      */
     fun code(code: Int) {
         mwr = mwr.copy(code = code)
@@ -37,7 +37,7 @@ class MockResponseContext {
     /**
      * Set header pair as vararg.
      *
-     * @param headers [Pair] - header pair string and string.
+     * @param headers - [Pair] header pair string and string.
      */
     fun headers(vararg headers: Pair<String, String>) {
         mwr = mwr.copy(headers = headers.toMap())
@@ -46,7 +46,7 @@ class MockResponseContext {
     /**
      * Set header by DLS-context
      *
-     * @param init - DSL-contexn block.
+     * @param init - DSL-context block.
      */
     fun headers(init: MockHeadersContext.() -> Unit) {
         mwr = mwr.copy(headers = MockHeadersContext().apply(init).headers)

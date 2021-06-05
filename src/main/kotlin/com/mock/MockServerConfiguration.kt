@@ -3,7 +3,11 @@ package com.mock
 import com.mock.converter.ConverterFactory
 import com.mock.mockmodel.MockWebResponse
 
-object MockServerSettings {
+/**
+ *
+ *
+ */
+object MockServerConfiguration {
 
     var converterFactory: ConverterFactory? = null
         get() {
@@ -13,5 +17,5 @@ object MockServerSettings {
             return field
         }
 
-    var defaultResponse: MockWebResponse? = null
+    var defaultResponse: MockWebResponse = MockWebResponse(404)
 }

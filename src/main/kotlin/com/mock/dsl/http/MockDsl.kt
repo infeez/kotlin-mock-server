@@ -10,9 +10,9 @@ import com.mock.util.RequestMethod
 /**
  * DSL method for create and return HTTP mock by HTTP-method type and url equivalent.
  *
- * @param requestMethod [RequestMethod]         - Set HTTP-method type
- * @param url           [String]                - Set url for check incoming url in your client for mock response.
- * @param mockBuilder   [MockResponseContext]   - DSL block for build http mock response(code|headers|body|etc).
+ * @param requestMethod - [RequestMethod] Set HTTP-method type
+ * @param url           - [String] Set url for check incoming url in your client for mock response.
+ * @param mockBuilder   - [MockResponseContext] DSL-context for build http mock response(code|headers|body|etc).
  *
  * @return a mock [Mock] type for use in MockServer. Also you need to add this created object to your mock list or MockServer mocks.
  */
@@ -27,8 +27,8 @@ fun mock(
 /**
  * DSL method for create and return HTTP mock by url equivalent.
  *
- * @param url           [String]                - Set url for check incoming url in your client for mock response.
- * @param mockBuilder   [MockResponseContext]   - DSL block for build http mock response(code|headers|body|etc).
+ * @param url         - [String] Set url for check incoming url in your client for mock response.
+ * @param mockBuilder - [MockResponseContext] DSL-context for build http mock response(code|headers|body|etc).
  *
  * @return a mock [Mock] type for use in MockServer. Also you need to add this created object to your mock list or MockServer mocks.
  */
@@ -45,8 +45,8 @@ fun mock(
 /**
  * DSL method for create and return HTTP mock by HTTP-method type and combined matcher.
  *
- * @param requestMethod [RequestMethod]       - Set HTTP-method type
- * @param matcher       [MockMatcherContext]  - DSL context for build matcher for request in your client.
+ * @param requestMethod - [RequestMethod] Set HTTP-method type
+ * @param matcher       - [MockMatcherContext] DSL-context for build matcher for request in your client.
  *
  * @return a mock [Mock] type for use in MockServer. Also you need to add this created object to your mock list or MockServer mocks.
  */
@@ -63,7 +63,7 @@ fun mock(
 /**
  * DSL method for create and return HTTP mock by combined matcher.
  *
- * @param matcher       [MockMatcherContext]  - DSL context for build matcher for request in your client.
+ * @param matcher- [MockMatcherContext] DSL-context for build matcher for request in your client.
  *
  * @return a mock [Mock] type for use in MockServer. Also you need to add this created object to your mock list or MockServer mocks.
  */

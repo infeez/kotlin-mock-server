@@ -7,6 +7,8 @@ plugins {
     java
     kotlin("jvm") version "1.5.0"
     id("org.jetbrains.dokka") version "1.4.32"
+    `maven-publish`
+    signing
 }
 
 repositories {
@@ -63,4 +65,45 @@ tasks.compileJava {
 
 tasks.wrapper {
     gradleVersion = "7.0"
+}
+
+//fun getExtraString(name: String) = ext[name]?.toString()
+
+publishing {
+    // Configure maven central repository
+    repositories {
+        maven {
+            name = "sonatype"
+            setUrl("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
+            credentials {
+                username = ""
+                password = ""
+            }
+        }
+    }
+    publications.withType<MavenPublication> {
+        //artifact(javadocJar.get())
+        pom {
+            name.set("Kotlin Mock Server")
+            description.set("Kotlin mock server for testing any client.")
+            url.set("https://github.com/infeez/kotlin-mock-server")
+
+            licenses {
+                license {
+                    name.set("Apache-2.0")
+                    url.set("https://opensource.org/licenses/Apache-2.0")
+                }
+            }
+            developers {
+                developer {
+                    id.set("infeez")
+                    name.set("Vadim Vasyanin")
+                    email.set("infeez@gmail.com")
+                }
+            }
+            scm {
+                url.set("https://github.com/infeez/kotlin-mock-server")
+            }
+        }
+    }
 }

@@ -8,9 +8,11 @@ import com.mock.dsl.http.customMockServer
 import com.mock.dsl.http.mock
 import com.mock.dsl.http.nettyHttpMockServer
 import com.mock.dsl.http.okHttpMockServer
+import com.mock.extensions.copy
 import com.mock.extensions.mock
 import com.mock.matcher.and
 import com.mock.matcher.or
+import com.mock.mockmodel.MockWebResponse
 import com.mock.server.Configuration
 import com.mock.server.Server
 import com.mock.server.impl.NettyHttpServer
@@ -31,6 +33,26 @@ import kotlin.test.assertNotEquals
 class MockServerV1Test {
 
     private val defaultResponse = "response string"
+
+    @get:Rule
+    val mockServer = okHttpMockServer(
+        Configuration.custom {
+            host = "localhost"
+            port = 8888
+        },
+        {
+            converterFactory = object : ConverterFactory {
+                override fun <T> from(value: String, type: Type): T {
+                    TODO("Not yet implemented")
+                }
+
+                override fun <T> to(value: T): String {
+                    TODO("Not yet implemented")
+                }
+            }
+            defaultResponse = MockWebResponse(404, body = "Mock not found!")
+        }
+    )
 
     @get:Rule
     val okHttpServer = okHttpMockServer {
@@ -169,6 +191,26 @@ class MockServerV1Test {
     }
 
     @Test
+    fun `header eq matcher test`() = runServers {
+        mock {
+            header("name") { eq("value") }
+        } on {
+            body(defaultResponse)
+        }
+
+        httpGet {
+            host = configuration.host
+            port = configuration.port
+            header {
+                "name" to "value"
+            }
+            path = "/url/"
+        }.also {
+            assertEquals(defaultResponse, it.body!!.string())
+        }
+    }
+
+    @Test
     fun `path eq matcher test`() = runServers {
         mock {
             path { eq("/mock/url") }
@@ -204,7 +246,7 @@ class MockServerV1Test {
     @Test
     fun `param eq matcher test`() = runServers {
         mock {
-            param("param") { eq("1") }
+            query("param") { eq("1") }
         } on {
             body(defaultResponse)
         }
@@ -215,7 +257,7 @@ class MockServerV1Test {
     @Test
     fun `param startWith matcher test`() = runServers {
         mock {
-            param("param") { startWith("1") }
+            query("param") { startWith("1") }
         } on {
             body(defaultResponse)
         }
@@ -226,7 +268,7 @@ class MockServerV1Test {
     @Test
     fun `param endsWith matcher test`() = runServers {
         mock {
-            param("param") { endsWith("4") }
+            query("param") { endsWith("4") }
         } on {
             body(defaultResponse)
         }
@@ -237,7 +279,7 @@ class MockServerV1Test {
     @Test
     fun `path eq and param eq matcher test`() = runServers {
         mock {
-            path { eq("/mock/url") } and param("param") { endsWith("1") }
+            path { eq("/mock/url") } and query("param") { endsWith("1") }
         } on {
             body(defaultResponse)
         }
@@ -248,7 +290,7 @@ class MockServerV1Test {
     @Test
     fun `path eq(true) or param eq(false) matcher test`() = runServers {
         mock {
-            path { eq("/mock/url") } or param("param") { endsWith("2") }
+            path { eq("/mock/url") } or query("param") { endsWith("2") }
         } on {
             body(defaultResponse)
         }
@@ -259,7 +301,7 @@ class MockServerV1Test {
     @Test
     fun `path eq(false) or param eq(true) matcher test`() = runServers {
         mock {
-            path { eq("/some/path") } or param("param") { endsWith("1") }
+            path { eq("/some/path") } or query("param") { endsWith("1") }
         } on {
             body(defaultResponse)
         }

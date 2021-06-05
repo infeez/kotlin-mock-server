@@ -2,6 +2,10 @@ package com.mock.server
 
 import com.mock.util.generatePort
 
+/**
+ * Start-up configuration for mock server.
+ *
+ */
 class Configuration {
 
     /**

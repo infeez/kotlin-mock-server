@@ -9,7 +9,7 @@ class UrlBuilderMock(
     requestMethod: RequestMethod
 ) : Mock(requestMethod) {
 
-    override fun isCoincided(path: String, method: String?, body: String?): Boolean {
-        return super.isCoincided(path, method, body) && urlBuilderMatcher.isCoincided()
+    override fun isCoincided(path: String, method: String?, body: String?, headers: Map<String, String>): Boolean {
+        return super.isCoincided(path, method, body, headers) && urlBuilderMatcher.isCoincided()
     }
 }

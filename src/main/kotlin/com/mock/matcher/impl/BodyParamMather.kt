@@ -8,7 +8,7 @@ class BodyParamMather<T>(
     private val bodyConverter: BodyConverter<T>
 ) : RequestMatcher {
 
-    override fun invoke(path: String?, body: String?): Boolean {
+    override fun invoke(path: String?, body: String?, headers: Map<String, String>): Boolean {
         return matcher(bodyConverter.convert(body!!))
     }
 }

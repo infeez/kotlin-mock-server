@@ -10,13 +10,13 @@ class MatcherMock(
     private val requestMatcher: RequestMatcher
 ) : Mock(requestMethod) {
 
-    override fun isCoincided(path: String, method: String?, body: String?): Boolean {
-        val isCoincided = super.isCoincided(path, method, body)
+    override fun isCoincided(path: String, method: String?, body: String?, headers: Map<String, String>): Boolean {
+        val isCoincided = super.isCoincided(path, method, body, headers)
         if (!isCoincided) {
             return false
         }
 
-        return requestMatcher.invoke(path.decodeUrl(), body)
+        return requestMatcher.invoke(path.decodeUrl(), body, headers)
     }
 
     override fun copy(): Mock {
