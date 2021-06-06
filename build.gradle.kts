@@ -1,5 +1,5 @@
 group = "kotlin-mock-server"
-version = "1.0.0-PreAlpha"
+version = "1.0.0-alpha"
 
 val ktlint by configurations.creating
 
