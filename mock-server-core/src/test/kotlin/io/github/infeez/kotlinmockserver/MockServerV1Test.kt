@@ -176,7 +176,7 @@ class MockServerV1Test {
     @Test
     fun `path eq and param eq matcher test`() = runServer {
         mock {
-            path { eq("/mock/url") } and query("param") { endsWith("1") }
+            path { eq("/mock/url") } and query("param") { eq("1") }
         } on {
             body(defaultResponse)
         }
@@ -187,7 +187,7 @@ class MockServerV1Test {
     @Test
     fun `path eq(true) or param eq(false) matcher test`() = runServer {
         mock {
-            path { eq("/mock/url") } or query("param") { endsWith("2") }
+            path { eq("/mock/url") } or query("param") { eq("2") }
         } on {
             body(defaultResponse)
         }
@@ -198,7 +198,7 @@ class MockServerV1Test {
     @Test
     fun `path eq(false) or param eq(true) matcher test`() = runServer {
         mock {
-            path { eq("/some/path") } or query("param") { endsWith("1") }
+            path { eq("/some/path") } or query("param") { eq("1") }
         } on {
             body(defaultResponse)
         }
