@@ -10,7 +10,9 @@ import okhttp3.mockwebserver.RecordedRequest
 import java.net.InetAddress
 import java.util.concurrent.TimeUnit.MILLISECONDS
 
-class OkHttpServer(configuration: Configuration) : Server(configuration) {
+class OkHttpServer(
+    configuration: Configuration
+) : Server(configuration) {
 
     private val mockWebServer = MockWebServer()
 

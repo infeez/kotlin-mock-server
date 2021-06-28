@@ -14,7 +14,7 @@ sealed class BodyConverter<T> {
     class BodyDataConverter<T>(
         private val converterFactory: ConverterFactory,
         private val type: Type
-    ) : io.github.infeez.kotlinmockserver.converter.BodyConverter<T>() {
+    ) : BodyConverter<T>() {
         override fun convert(src: String): T {
             return converterFactory.from(src, type)
         }

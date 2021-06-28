@@ -10,11 +10,10 @@ java {
 }
 
 repositories {
-    google()
     mavenCentral()
 }
 
 dependencies {
-    testImplementation(Dependencies.kohttp)
     testImplementation(Dependencies.gson)
+    testImplementation(Dependencies.kotlinTest)
 }

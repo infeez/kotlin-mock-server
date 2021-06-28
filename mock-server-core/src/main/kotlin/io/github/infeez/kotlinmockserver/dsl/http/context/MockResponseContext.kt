@@ -55,7 +55,7 @@ class MockResponseContext {
     /**
      * Set response body.
      *
-     * @param body [String] a body as string.
+     * @param body [String] as a body.
      */
     fun body(body: String) {
         mwr = mwr.copy(body = body)
@@ -64,7 +64,7 @@ class MockResponseContext {
     /**
      * Set response body.
      *
-     * @param file [File] a body as file.
+     * @param file [File] as a body.
      */
     fun body(file: File) {
         body(FileInputStream(file))
@@ -73,7 +73,7 @@ class MockResponseContext {
     /**
      * Set response body.
      *
-     * @param inputStream [InputStream] a body as file.
+     * @param inputStream [InputStream] as a body.
      */
     fun body(inputStream: InputStream) {
         body(inputStream.use { stream -> stream.bufferedReader().use { it.readText() } })

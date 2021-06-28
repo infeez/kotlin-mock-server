@@ -2,26 +2,17 @@ package io.github.infeez.kotlinmockserver
 
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import io.github.infeez.kotlinmockserver.converter.ConverterFactory
 import io.github.infeez.kotlinmockserver.dsl.http.context.MockServerContext
 import io.github.infeez.kotlinmockserver.dsl.http.mock
-import io.github.infeez.kotlinmockserver.dsl.http.nettyHttpMockServer
-import io.github.infeez.kotlinmockserver.dsl.http.okHttpMockServer
 import io.github.infeez.kotlinmockserver.extensions.copy
 import io.github.infeez.kotlinmockserver.extensions.mock
 import io.github.infeez.kotlinmockserver.matcher.and
 import io.github.infeez.kotlinmockserver.matcher.or
+import io.github.infeez.kotlinmockserver.mockmodel.MockWebRequest
 import io.github.infeez.kotlinmockserver.mockmodel.MockWebResponse
-import io.github.infeez.kotlinmockserver.server.Configuration
-import io.github.infeez.kotlinmockserver.server.Server
-import io.github.infeez.kotlinmockserver.server.impl.NettyHttpServer
-import io.github.infeez.kotlinmockserver.server.impl.OkHttpServer
-import io.github.rybalkinsd.kohttp.dsl.httpGet
-import io.github.rybalkinsd.kohttp.dsl.httpPost
-import io.github.rybalkinsd.kohttp.util.Json
-import io.github.rybalkinsd.kohttp.util.json
-import okhttp3.Response
+import io.github.infeez.kotlinmockserver.util.RequestMethod
 import org.junit.Ignore
-import org.junit.Rule
 import org.junit.Test
 import java.lang.reflect.Type
 import java.util.concurrent.TimeUnit.MILLISECONDS
@@ -32,41 +23,7 @@ class MockServerV1Test {
 
     private val defaultResponse = "response string"
 
-    @get:Rule
-    val mockServer = okHttpMockServer(
-        Configuration.custom {
-            host = "localhost"
-            port = 8888
-        },
-        {
-            converterFactory = object : io.github.infeez.kotlinmockserver.converter.ConverterFactory {
-                override fun <T> from(value: String, type: Type): T {
-                    TODO("Not yet implemented")
-                }
-
-                override fun <T> to(value: T): String {
-                    TODO("Not yet implemented")
-                }
-            }
-            defaultResponse = MockWebResponse(404, body = "Mock not found!")
-        }
-    )
-
-    @get:Rule
-    val okHttpServer = okHttpMockServer {
-        mock("/rule/okhttp/test") {
-            body("its ok")
-        }
-    }
-
-    @get:Rule
-    val nettyServer = nettyHttpMockServer {
-        mock("/rule/netty/test") {
-            body("its ok")
-        }
-    }
-
-    private val gsonConverterFactory = object : io.github.infeez.kotlinmockserver.converter.ConverterFactory {
+    private val gsonConverterFactory = object : ConverterFactory {
         private val gson = Gson()
         override fun <T> from(value: String, type: Type): T {
             return gson.fromJson(value, type)
@@ -77,74 +34,23 @@ class MockServerV1Test {
         }
     }
 
-    private var configuration = Configuration.default()
-
-    private fun servers(): List<Server> {
-        configuration = Configuration.default()
-        return listOf(OkHttpServer(configuration), NettyHttpServer(configuration))
-    }
+    private val server = TestServer()
 
     @Test
-    fun `rule okhttp test`() {
-        val response = httpGet {
-            host = okHttpServer.server.configuration.host
-            port = okHttpServer.server.configuration.port
-            path = "/rule/okhttp/test"
-        }
-
-        assertEquals("its ok", response.body!!.string())
-    }
-
-    // почему-то два сервера стартуют с одинаковыми портами. TODO проверить правильность метода подбора портов
-    @Test
-    fun `rule netty test`() {
-        val response = httpGet {
-            host = nettyServer.server.configuration.host
-            port = nettyServer.server.configuration.port
-            path = "/rule/netty/test"
-        }
-
-        assertEquals("its ok", response.body!!.string())
-    }
-
-    @Test
-    fun `mock test`() = runServers {
+    fun `mock test`() = runServer {
         mock("/base/mock/server") {
             headers("key" to "value")
             body(defaultResponse)
         }
 
-        val response = httpGet {
-            host = configuration.host
-            port = configuration.port
-            path = "/base/mock/server"
-        }
-
-        assertEquals(defaultResponse, response.body!!.string())
-        assertEquals("value", response.headers["key"])
-    }
-
-    @Test
-    fun `some mocks in one add block test`() = runServers {
-        repeat(5) { index ->
-            mock("/base/mock/server$index") {
-                headers("key$index" to "value$index")
-                body("response string$index")
-            }
-
-            val response = httpGet {
-                host = configuration.host
-                port = configuration.port
-                path = "/base/mock/server$index"
-            }
-
-            assertEquals("response string$index", response.body!!.string())
-            assertEquals("value$index", response.headers["key$index"])
+        get("/base/mock/server").also {
+            assertEquals(defaultResponse, it.body)
+            assertEquals("value", it.headers["key"])
         }
     }
 
     @Test
-    fun `url mock query test`() = runServers {
+    fun `url mock query test`() = runServer {
         mock("/base/mock/server?param1=1&param2=2") {
             body(defaultResponse)
         }
@@ -153,7 +59,7 @@ class MockServerV1Test {
     }
 
     @Test
-    fun `query empty value param test`() = runServers {
+    fun `query empty value param test`() = runServer {
         mock("/base/mock/server?param1=1&param2=") {
             body(defaultResponse)
         }
@@ -162,7 +68,7 @@ class MockServerV1Test {
     }
 
     @Test
-    fun `reverse query test`() = runServers {
+    fun `reverse query test`() = runServer {
         mock("/base/mock/server?param2=2&param1=1") {
             body(defaultResponse)
         }
@@ -171,7 +77,7 @@ class MockServerV1Test {
     }
 
     @Test
-    fun `path param asterisk and query test`() = runServers {
+    fun `path param asterisk and query test`() = runServer {
         mock("/mock/*/url?param1=1&param2=2") {
             body(defaultResponse)
         }
@@ -180,7 +86,7 @@ class MockServerV1Test {
     }
 
     @Test
-    fun `path param asterisk last and query test`() = runServers {
+    fun `path param asterisk last and query test`() = runServer {
         mock("/mock/*") {
             body(defaultResponse)
         }
@@ -189,27 +95,20 @@ class MockServerV1Test {
     }
 
     @Test
-    fun `header eq matcher test`() = runServers {
+    fun `header eq matcher test`() = runServer {
         mock {
             header("name") { eq("value") }
         } on {
             body(defaultResponse)
         }
 
-        httpGet {
-            host = configuration.host
-            port = configuration.port
-            header {
-                "name" to "value"
-            }
-            path = "/url/"
-        }.also {
-            assertEquals(defaultResponse, it.body!!.string())
+        get(path = "/url/", headers = mapOf("name" to "value")).also {
+            assertEquals(defaultResponse, it.body)
         }
     }
 
     @Test
-    fun `path eq matcher test`() = runServers {
+    fun `path eq matcher test`() = runServer {
         mock {
             path { eq("/mock/url") }
         } on {
@@ -220,7 +119,7 @@ class MockServerV1Test {
     }
 
     @Test
-    fun `path startWith matcher test`() = runServers {
+    fun `path startWith matcher test`() = runServer {
         mock {
             path { startWith("/mock") }
         } on {
@@ -231,7 +130,7 @@ class MockServerV1Test {
     }
 
     @Test
-    fun `path endsWith matcher test`() = runServers {
+    fun `path endsWith matcher test`() = runServer {
         mock {
             path { endsWith("/url") }
         } on {
@@ -242,7 +141,7 @@ class MockServerV1Test {
     }
 
     @Test
-    fun `param eq matcher test`() = runServers {
+    fun `param eq matcher test`() = runServer {
         mock {
             query("param") { eq("1") }
         } on {
@@ -253,7 +152,7 @@ class MockServerV1Test {
     }
 
     @Test
-    fun `param startWith matcher test`() = runServers {
+    fun `param startWith matcher test`() = runServer {
         mock {
             query("param") { startWith("1") }
         } on {
@@ -264,7 +163,7 @@ class MockServerV1Test {
     }
 
     @Test
-    fun `param endsWith matcher test`() = runServers {
+    fun `param endsWith matcher test`() = runServer {
         mock {
             query("param") { endsWith("4") }
         } on {
@@ -275,7 +174,7 @@ class MockServerV1Test {
     }
 
     @Test
-    fun `path eq and param eq matcher test`() = runServers {
+    fun `path eq and param eq matcher test`() = runServer {
         mock {
             path { eq("/mock/url") } and query("param") { endsWith("1") }
         } on {
@@ -286,7 +185,7 @@ class MockServerV1Test {
     }
 
     @Test
-    fun `path eq(true) or param eq(false) matcher test`() = runServers {
+    fun `path eq(true) or param eq(false) matcher test`() = runServer {
         mock {
             path { eq("/mock/url") } or query("param") { endsWith("2") }
         } on {
@@ -297,7 +196,7 @@ class MockServerV1Test {
     }
 
     @Test
-    fun `path eq(false) or param eq(true) matcher test`() = runServers {
+    fun `path eq(false) or param eq(true) matcher test`() = runServer {
         mock {
             path { eq("/some/path") } or query("param") { endsWith("1") }
         } on {
@@ -308,7 +207,7 @@ class MockServerV1Test {
     }
 
     @Test
-    fun `slash out in url`() = runServers {
+    fun `slash out in url`() = runServer {
         mock("url/without/first/slash") {
             body(defaultResponse)
         }
@@ -317,7 +216,7 @@ class MockServerV1Test {
     }
 
     @Test
-    fun `body param string test`() = runServers {
+    fun `body param string test`() = runServer {
         mock {
             path { eq("/mock/url") } and body { eq("request body string") }
         } on {
@@ -328,7 +227,7 @@ class MockServerV1Test {
     }
 
     @Test
-    fun `body param converter full json test`() = runServers {
+    fun `body param converter full json test`() = runServer {
         mock {
             path { eq("/mock/url") } and body {
                 bodyMarch<StubModel> { a == "a" && b == 1 && c == 2L && d == 3.0 }
@@ -337,16 +236,11 @@ class MockServerV1Test {
             body(defaultResponse)
         }
 
-        postResultDefaultTest("/mock/url") {
-            "a" to "a"
-            "b" to 1
-            "c" to 2L
-            "d" to 3.0
-        }
+        postResultDefaultTest("/mock/url", """{ "a":"a","b":1,"c":2,"d":3.0 }""")
     }
 
     @Test
-    fun `body param converter one field json test`() = runServers {
+    fun `body param converter one field json test`() = runServer {
         mock {
             path { eq("/mock/url") } and body {
                 bodyMarch<StubModel> { a == "a" }
@@ -355,16 +249,11 @@ class MockServerV1Test {
             body(defaultResponse)
         }
 
-        postResultDefaultTest("/mock/url") {
-            "a" to "a"
-            "b" to 1
-            "c" to 2L
-            "d" to 3.0
-        }
+        postResultDefaultTest("/mock/url", """{ "a":"a","b":1,"c":2,"d":3.0 }""")
     }
 
     @Test
-    fun `body param converter no one field json test`() = runServers {
+    fun `body param converter no one field json test`() = runServer {
         mock {
             path { eq("/mock/url") } and body {
                 bodyMarch<StubModel> { a == "aabb" }
@@ -373,20 +262,8 @@ class MockServerV1Test {
             body(defaultResponse)
         }
 
-        httpPost {
-            host = configuration.host
-            port = configuration.port
-            body {
-                json {
-                    "a" to "a"
-                    "b" to 1
-                    "c" to 2L
-                    "d" to 3.0
-                }
-            }
-            path = "/mock/url"
-        }.run {
-            assertNotEquals("response string", body!!.string())
+        post(path = "/mock/url", body = """{ "a":"a","b":1,"c":2,"d":3.0 }""").also {
+            assertNotEquals("response string", it.body)
         }
     }
 
@@ -400,26 +277,18 @@ class MockServerV1Test {
             body("$defaultResponse 2")
         }
 
-        runServers {
+        runServer {
             addAll(mock1, mock2)
 
-            var response = httpPost {
-                host = configuration.host
-                port = configuration.port
-                path = "/mock/url"
-            }
+            var response = post(path = "/mock/url")
 
-            assertEquals("$defaultResponse 1", response.body!!.string())
+            assertEquals("$defaultResponse 1", response.body)
 
             replace(mock1, mock2)
 
-            response = httpPost {
-                host = configuration.host
-                port = configuration.port
-                path = "/mock/url"
-            }
+            response = post(path = "/mock/url")
 
-            assertEquals("$defaultResponse 2", response.body!!.string())
+            assertEquals("$defaultResponse 2", response.body)
         }
     }
 
@@ -429,67 +298,44 @@ class MockServerV1Test {
             body(defaultResponse)
         }
 
-        runServers {
+        runServer {
             add(mock)
 
-            var response = httpPost {
-                host = configuration.host
-                port = configuration.port
-                path = "/mock/url"
-            }
+            var response = post(path = "/mock/url")
 
-            assertEquals(defaultResponse, response.body!!.string())
+            assertEquals(defaultResponse, response.body)
 
             remove(mock)
 
-            response = httpPost {
-                host = configuration.host
-                port = configuration.port
-                path = "/mock/url"
-            }
+            response = post(path = "/mock/url")
 
-            assertNotEquals(defaultResponse, response.body!!.string())
+            assertNotEquals(defaultResponse, response.body)
         }
     }
 
     @Test
-    fun `change mock response body test`() = runServers {
+    fun `change mock response body test`() = runServer {
         val mock = io.github.infeez.kotlinmockserver.dsl.http.mock { path { eq("/mock/url") } } on {
-            body(
-                json {
-                    "a" to "a"
-                    "b" to 1
-                    "c" to 2L
-                    "d" to 3.0
-                }
-            )
+            body("""{"a":"a","b":1,"c":2,"d":3.0}""")
         }
 
         add(mock)
 
-        var response = httpPost {
-            host = configuration.host
-            port = configuration.port
-            path = "/mock/url"
-        }
+        var response = post(path = "/mock/url")
 
-        assertEquals("""{"a":"a","b":1,"c":2,"d":3.0}""", response.body!!.string())
+        assertEquals("""{"a":"a","b":1,"c":2,"d":3.0}""", response.body)
 
         changeMockBody<StubModel>(mock) {
             d = 55.5
         }
 
-        response = httpPost {
-            host = configuration.host
-            port = configuration.port
-            path = "/mock/url"
-        }
+        response = post(path = "/mock/url")
 
-        assertEquals("""{"a":"a","b":1,"c":2,"d":55.5}""", response.body!!.string())
+        assertEquals("""{"a":"a","b":1,"c":2,"d":55.5}""", response.body)
     }
 
     @Test
-    fun `change mock response body with generic test`() = runServers {
+    fun `change mock response body with generic test`() = runServer {
         val mock = io.github.infeez.kotlinmockserver.dsl.http.mock { path { eq("/mock/url") } } on {
             body("""{"items":[{"a":"a","b":1,"c":2,"d":3.0}]}""")
         }
@@ -505,101 +351,61 @@ class MockServerV1Test {
             }
         }
 
-        httpPost {
-            host = configuration.host
-            port = configuration.port
-            path = "/mock/url"
-        }.run {
-            assertEquals("""{"items":[{"a":"b","b":2,"c":3,"d":4.0}]}""", body!!.string())
+        post(path = "/mock/url").also {
+            assertEquals("""{"items":[{"a":"b","b":2,"c":3,"d":4.0}]}""", it.body)
         }
     }
 
     @Test
-    fun `copy mock test`() = runServers {
+    fun `copy mock test`() = runServer {
         val mock1 = io.github.infeez.kotlinmockserver.dsl.http.mock { path { eq("/mock/url") } } on {
             code(201)
             headers {
                 "a" to "123"
             }
             delay(100, MILLISECONDS)
-            body(
-                json {
-                    "a" to "a"
-                    "b" to 1
-                    "c" to 2L
-                    "d" to 3.0
-                }
-            )
+            body("""{"a":"a","b":1,"c":2,"d":3.0}""")
         }
 
         val mock2 = mock1.copy {
-            body(
-                json {
-                    "a" to "a"
-                    "b" to 1
-                    "c" to 2L
-                    "d" to 55.5
-                }
-            )
+            body("""{"a":"a","b":1,"c":2,"d":55.5}""")
         }
 
         add(mock2)
 
-        val response = httpPost {
-            host = configuration.host
-            port = configuration.port
-            path = "/mock/url"
-        }
+        val response = post(path = "/mock/url")
 
         assertEquals(100, mock2.mockWebResponse.mockWebResponseParams.delay)
 
         assertEquals("123", response.headers["a"])
         assertEquals(201, response.code)
-        assertEquals("""{"a":"a","b":1,"c":2,"d":55.5}""", response.body!!.string())
+        assertEquals("""{"a":"a","b":1,"c":2,"d":55.5}""", response.body)
     }
 
     @Test
-    fun `copyResponse mock not affect copied mock test`() = runServers {
+    fun `copyResponse mock not affect copied mock test`() = runServer {
         val mock1 = io.github.infeez.kotlinmockserver.dsl.http.mock { path { eq("/mock/url") } } on {
             code(201)
             headers {
                 "a" to "123"
             }
             delay(100, MILLISECONDS)
-            body(
-                json {
-                    "a" to "a"
-                    "b" to 1
-                    "c" to 2L
-                    "d" to 3.0
-                }
-            )
+            body("""{"a":"a","b":1,"c":2,"d":3.0}""")
         }
 
         add(mock1)
 
         mock1.copy {
-            body(
-                json {
-                    "a" to "a"
-                    "b" to 121231
-                    "c" to 2L
-                    "d" to 55.5
-                }
-            )
+            body("""{"a":"a","b":121231,"c":2,"d":55.5}""")
         }
 
-        val response = httpPost {
-            host = configuration.host
-            port = configuration.port
-            path = "/mock/url"
-        }
+        val response = post(path = "/mock/url")
 
-        assertEquals("""{"a":"a","b":1,"c":2,"d":3.0}""", response.body!!.string())
+        assertEquals("""{"a":"a","b":1,"c":2,"d":3.0}""", response.body)
     }
 
     @Test
-    fun `body param converter one url multiple time test`() = runServers {
+    fun `body param converter one url multiple time test`() = runServer {
         mock { path { eq("/some/path") } and body { bodyMarch<StubModel> { a == "a" } } } on {
             body(("response string a"))
         }
@@ -610,162 +416,97 @@ class MockServerV1Test {
             body(("response string c"))
         }
 
-        var response = httpPost {
-            host = configuration.host
-            port = configuration.port
-            body {
-                json {
-                    "a" to "a"
-                    "b" to 1
-                    "c" to 2L
-                    "d" to 3.0
-                }
-            }
-            path = "/some/path"
-        }
+        var response = post(path = "/some/path", body = """{ "a":"a","b":1,"c":2,"d":3.0 }""")
 
-        assertEquals("response string a", response.body!!.string())
+        assertEquals("response string a", response.body)
 
-        response = httpPost {
-            host = configuration.host
-            port = configuration.port
-            body {
-                json {
-                    "a" to "b"
-                    "b" to 1
-                    "c" to 2L
-                    "d" to 3.0
-                }
-            }
-            path = "/some/path"
-        }
+        response = post(path = "/some/path", body = """{ "a":"b","b":1,"c":2,"d":3.0 }""")
 
-        assertEquals("response string b", response.body!!.string())
+        assertEquals("response string b", response.body!!)
 
-        response = httpPost {
-            host = configuration.host
-            port = configuration.port
-            body {
-                json {
-                    "a" to "c"
-                    "b" to 1
-                    "c" to 2L
-                    "d" to 3.0
-                }
-            }
-            path = "/some/path"
-        }
+        response = post(path = "/some/path", body = """{ "a":"c","b":1,"c":2,"d":3.0 }""")
 
-        assertEquals("response string c", response.body!!.string())
+        assertEquals("response string c", response.body!!)
     }
 
     @Test
-    fun `bodyEq test`() = runServers {
+    fun `bodyEq test`() = runServer {
         mock { path { eq("/some/path") } and body { bodyEq<StubModel>("""{"a":"a","b":1,"c":2,"d":3.0}""") } } on {
             body(("response string a"))
         }
 
-        val response = httpPost {
-            host = configuration.host
-            port = configuration.port
-            body {
-                json {
-                    "a" to "a"
-                    "b" to 1
-                    "c" to 2L
-                    "d" to 3.0
-                }
-            }
-            path = "/some/path"
-        }
+        val response = post(path = "/some/path", body = """{ "a":"a","b":1,"c":2,"d":3.0 }""")
 
-        assertEquals("response string a", response.body!!.string())
+        assertEquals("response string a", response.body!!)
     }
 
     @Ignore("Need to add get request from server")
     @Test
-    fun `double read body test`() = runServers {
+    fun `double read body test`() = runServer {
         mock { path { eq("/some/path") } } on {
             body(defaultResponse)
         }
 
-        httpPost {
-            host = configuration.host
-            port = configuration.port
-            path = "/some/path"
-            body {
-                string("request string a")
-            }
-        }
+        post(path = "/some/path", body = "request string a")
 
 //        assertEquals("request string a", takeRequest().body.readUtf8())
     }
 
     private fun getResultDefaultTest(url: String) {
         getResultTest(url) {
-            assertEquals(defaultResponse, body!!.string())
+            assertEquals(defaultResponse, body)
         }
     }
 
     private fun postResultDefaultTest(url: String, bodyStr: String? = null) {
         postResultTest(url, bodyStr) {
-            assertEquals(defaultResponse, body!!.string())
+            assertEquals(defaultResponse, body)
         }
     }
 
-    private fun postResultDefaultTest(url: String, bodyJson: (Json.() -> Unit)? = null) {
-        postResultTest(url, bodyJson = bodyJson) {
-            assertEquals(defaultResponse, body!!.string())
-        }
+    private fun getResultTest(url: String, result: MockWebResponse.() -> Unit) {
+        result(get(path = url))
     }
 
-    private fun getResultTest(url: String, result: Response.() -> Unit) {
-        result(
-            httpGet {
-                host = configuration.host
-                port = configuration.port
-                path = url
-            }
-        )
+    private fun postResultTest(url: String, bodyStr: String? = null, result: MockWebResponse.() -> Unit) {
+        result(post(path = url, body = bodyStr ?: ""))
     }
 
-    private fun postResultTest(url: String, bodyStr: String? = null, bodyJson: (Json.() -> Unit)? = null, result: Response.() -> Unit) {
-        result(
-            httpPost {
-                host = configuration.host
-                port = configuration.port
-                bodyStr?.also {
-                    body {
-                        string(it)
-                    }
-                }
-                bodyJson?.also {
-                    if (bodyStr != null) {
-                        error("bodyStr not null!")
-                    }
-
-                    body {
-                        json(it)
-                    }
-                }
-                path = url
-            }
-        )
+    private fun runServer(block: MockServerContext.() -> Unit) {
+        server.start()
+        block(MockServerContext(server) {
+            converterFactory = gsonConverterFactory
+        })
+        server.stop()
     }
 
-    private fun runServers(block: MockServerContext.() -> Unit) {
-        servers().forEach {
-            it.start()
-            mockServer(
-                it,
-                {
-                    converterFactory = gsonConverterFactory
-                },
-                block
+    private fun request(method: RequestMethod, path: String, headers: Map<String, String> = emptyMap(), body: String = ""): MockWebResponse {
+        return server.request(
+            MockWebRequest(
+                method = method.method,
+                path = path,
+                headers = headers,
+                body = body
             )
-            it.stop()
-            println("${it.javaClass.name} OK")
-        }
+        )
+    }
+
+    private fun get(path: String, headers: Map<String, String> = emptyMap(), body: String = ""): MockWebResponse {
+        return request(
+            method = RequestMethod.GET,
+            path = path,
+            headers = headers,
+            body = body
+        )
+    }
+
+    private fun post(path: String, headers: Map<String, String> = emptyMap(), body: String = ""): MockWebResponse {
+        return request(
+            method = RequestMethod.POST,
+            path = path,
+            headers = headers,
+            body = body
+        )
     }
 
     data class StubListInfo<T>(

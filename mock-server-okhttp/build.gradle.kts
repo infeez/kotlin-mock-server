@@ -9,12 +9,11 @@ java {
 }
 
 repositories {
-    google()
     mavenCentral()
 }
 
 dependencies {
     api(project(":mock-server-core"))
 
-    implementation("com.squareup.okhttp3", "mockwebserver", "4.2.1")
+    implementation(Dependencies.okhttp3MockWebServer)
 }

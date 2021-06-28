@@ -21,7 +21,11 @@ fun mock(
     url: String,
     mockBuilder: MockResponseContext.() -> Unit = {}
 ): Mock {
-    return MockContext().mock(url, requestMethod, mockBuilder)
+    return MockContext().mock(
+        url = url,
+        requestMethod = requestMethod,
+        mockBuilder = mockBuilder
+    )
 }
 
 /**
@@ -80,6 +84,10 @@ class MockBuilder(
     val requestMethod: RequestMethod = RequestMethod.ANY
 ) {
     infix fun on(mockBuilder: MockResponseContext.() -> Unit): Mock {
-        return MockContext().mock(matcher, requestMethod, mockBuilder)
+        return MockContext().mock(
+            matcher = matcher,
+            requestMethod = requestMethod,
+            mockBuilder = mockBuilder
+        )
     }
 }

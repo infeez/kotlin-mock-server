@@ -9,7 +9,6 @@ java {
 }
 
 repositories {
-    google()
     mavenCentral()
 }
 
