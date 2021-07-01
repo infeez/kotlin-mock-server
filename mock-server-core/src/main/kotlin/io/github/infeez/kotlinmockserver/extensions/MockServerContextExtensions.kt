@@ -18,15 +18,15 @@ fun MockServerContext.mock(
     requestMethod: RequestMethod,
     url: String,
     mockBuilder: MockResponseContext.() -> Unit = {}
-) {
-    add(io.github.infeez.kotlinmockserver.dsl.http.mock(requestMethod, url, mockBuilder))
+): Mock  {
+    return io.github.infeez.kotlinmockserver.dsl.http.mock(requestMethod, url, mockBuilder).also(::add)
 }
 
 fun MockServerContext.mock(
     url: String,
     mockBuilder: MockResponseContext.() -> Unit = {}
-) {
-    add(io.github.infeez.kotlinmockserver.dsl.http.mock(url, mockBuilder))
+): Mock  {
+    return io.github.infeez.kotlinmockserver.dsl.http.mock(url, mockBuilder).also(::add)
 }
 
 fun MockServerContext.mock(

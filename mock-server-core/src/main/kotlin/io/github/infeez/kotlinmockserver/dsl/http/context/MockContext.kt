@@ -50,4 +50,12 @@ class MockContext {
             mocks.add(it)
         }
     }
+
+    operator fun Mock.unaryPlus() {
+        mocks.add(this)
+    }
+
+    operator fun Mock.unaryMinus() {
+        mocks.remove(this)
+    }
 }

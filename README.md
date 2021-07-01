@@ -55,6 +55,11 @@ mockServer.mocks {
     mock("url2") {}
 }
 ```
+You can use ```Rule``` JUnit4 to manage server lifecycle. You need to implement ```mock-server-junit4``` (See Installation page) for use and just add ```.asRule()``` like this:
+```kotlin
+@get:Rule
+val mockServer = okHttpMockServer().asRule()
+```
 For create custom server you need to inheritance Server abstract class. TBD
 ### MockServer configuration
 The Mock server has two configurations.
@@ -163,7 +168,7 @@ If you need to compare each field in the body individually, use ```bodyMarch``` 
     "name2" : 2
 }
 ```
-and mock for this body with ```bodyMarch```:
+mock for this body with ```bodyMarch```:
 ```kotlin
 val mock = mock {
     body { 
@@ -239,7 +244,7 @@ The answer can be delayed by the method ```delay(1000L)``` without the second ar
 But you can use this method with two arguments and set the desired TimeUnit ```delay(1L, TimeUnit.MINUTES)```.
 </br> ```body(String|InputStream|File)``` method sets the body of the answer. You can use body overloading by specifying ```String```, ```InputStream``` or ```File```.
 </br> ```emptyBody()``` just sets body is empty.
-### Add mock to mock server
+### Add mock to server
 Remember! After you create a mock, you must add it to the mock server list!
 ```kotlin
 val mock1 = mock { path { eq("/url1") } } on { body("response body1") }
@@ -271,6 +276,117 @@ val userLoginTestScenario = mocks {
 
 mockServer.addAll(userLoginTestScenario)
 ```
+### Management mocks in mockServer runtime
+While the test is running, you can add, replace, change and remove mock.
+In some test case you may need it. Test's for example:
+#### Add new mock in runtime
+```kotlin
+@get:Rule
+val mockServer = okHttpMockServer().asRule()
+
+@Test
+fun `your awesome test need to add new mock`() {
+    // some steps test
+    // time to need add new mock while test running
+    mockServer.mock("url") {}
+    // now mock with "url" available for test
+}
+```
+#### Replace mock in runtime
+```kotlin
+class LoginTestCase {
+
+    @get:Rule
+    val mockServer = okHttpMockServer {
+        add(LoginMocks.loginByUserJohn)
+    }.asRule()
+
+    @Test
+    fun `your awesome test need to replace mock by other mock`() {
+        // some steps test
+        // some steps test with loginByUserJohn data
+        // now you test case need to change mock. It may be necessary for another test case
+        mockServer.replace(LoginMocks.loginByUserJohn, LoginMocks.loginByUserPeter)
+        // some steps test with loginByUserPeter data
+    }
+}
+
+object LoginMocks {
+    val loginByUserJohn = mock("url/login") {
+        body("""{ "username" : "John", "password": "123" }""")
+    }
+    
+    val loginByUserPeter = mock("url/login") {
+        body("""{ "username" : "Peter", "password": "456" }""")
+    }
+}
+```
+#### Change mock response in runtime
+```kotlin
+class LoginTestCase {
+
+    @get:Rule
+    val mockServer = okHttpMockServer {
+        add(LoginMocks.loginJohnAsAdmin)
+    }.asRule()
+
+    @Test
+    fun `your awesome test need to change mock`() {
+        // login test case
+        // now you need to check user not found when login
+        // you can change login response to code 404
+        LoginMocks.loginJohnAsAdmin.change<User> {
+            code(404)
+        }
+        // user not found test case
+    }
+}
+
+object LoginMocks {
+
+    val loginByUserJohn = mock("url/login") {
+        body("""{ "username" : "John", "password": "123" }""")
+    }
+}
+```
+#### Remove mock in runtime
+```kotlin
+class LoginTestCase {
+
+    @get:Rule
+    val mockServer = okHttpMockServer {
+        addAll(LoginMocks.loginJohnAsAdmin)
+    }.asRule()
+
+    @Test
+    fun `your awesome test need to remove mock`() {
+        // some steps test with loginByUserJohn and this user is ADMIN is this test case
+        // now you test case need to remove userDataIfUserAdmin for test when John is not admin 
+        // and request "url/roles?user=john" no needed
+        mockServer.remove(LoginMocks.userDataIfUserAdmin)
+        // now "url/roles?user=john" not available for test
+    }
+}
+
+object LoginMocks {
+    
+    val loginByUserJohn = mock("url/login") {
+        body("""{ "username" : "John", "password": "123" }""")
+    }
+    
+    val userDataIfUserAdmin = mock("url/roles?user=john") {
+        body("""{ "userRole" : "ADMIN" }""")
+    }
+
+    val loginJohnAsAdmin = mocks {
+        +loginByUserJohn
+        +userDataIfUserAdmin
+    }
+}
+```
+### Mocks declaration
+I recommend declare the mock lists for the test case in separate object classes.
+```object LoginMocks```, ```object UserMocks```, ```object NewsMocks``` - contain a list of mocks by test case.
 
 ## License
 Distributed under the Apache License 2.0. See `LICENSE` for more information.
