@@ -34,7 +34,7 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.logging.Level
 
-class NettyHttpServer(configuration: Configuration) : Server(configuration) {
+class NettyHttpServer(serverConfiguration: ServerConfiguration) : Server(serverConfiguration) {
 
     private var executor: ExecutorService? = null
 
@@ -58,7 +58,7 @@ class NettyHttpServer(configuration: Configuration) : Server(configuration) {
         executor!!.execute {
             println("Netty Started")
             try {
-                val inet = InetSocketAddress(InetAddress.getByName(configuration.host), configuration.port)
+                val inet = InetSocketAddress(InetAddress.getByName(serverConfiguration.host), serverConfiguration.port)
                 val serverBootstrap = ServerBootstrap().apply {
                     option(ChannelOption.SO_BACKLOG, 1024)
                     option(ChannelOption.SO_REUSEADDR, true)

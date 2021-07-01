@@ -1,3 +1,9 @@
+<p align="center">
+<a href=""><img alt="Maven Central" src="https://img.shields.io/maven-central/v/io.github.infeez/kotlin-mock-server"></a>
+<a href="https://infeez.github.io/kotlin-mock-server/"><img src="https://img.shields.io/badge/code%20style-%E2%9D%A4-FF4081.svg" alt="kotlin-mock-server"></a>
+<a href="https://discord.gg/hJRtBZPQ"><img src="https://img.shields.io/discord/759394790835355658" alt="Join the chat"/></a>
+</p>
+
 ## About The Project
 
 The library for a simple mocking HTTP server using a URL condition of any complexity.
@@ -17,7 +23,8 @@ Main features:
 * Ability to create your own mock server (netty(experimental) and okhttp are available)
 * Ability to replace, remove, add mock during test running
 * Ability to replace mock response parameters during test running
-* Rule support for the server. The server managed by ```Rule```.
+* JUnit4 Rule support for the server lifecycle.
+* JUnit5 Support (Planned).
 ## Getting Started
 ### Installation
 TBD!
@@ -26,20 +33,18 @@ TBD!
 ### Ways for create server and usage 
 Using rule for create and start server in your test class. Using OkHttp as a sample:
 ```kotlin
-    @get:Rule
-    val mockServer = okHttpMockServer {}
+val mockServer = okHttpMockServer()
 ```
 you can define mock inside as many times as you like ```okHttpMockServer```: 
 ```kotlin
-    @get:Rule
-    val mockServer = okHttpMockServer {
-        mock("/rule/okhttp/test") {
-            body("its ok")
-        }
-        mock("/rule/okhttp/test") {
-            body("its ok")
-        }
+val mockServer = okHttpMockServer {
+    mock("/rule/okhttp/test") {
+        body("its ok")
     }
+    mock("/rule/okhttp/test") {
+        body("its ok")
+    }
+}
 ```
 In other place you can use ```mockServer``` with ```mock``` or ```mocks``` functions.
 ```kotlin
@@ -53,50 +58,48 @@ mockServer.mocks {
 For create custom server you need to inheritance Server abstract class. TBD
 ### MockServer configuration
 The Mock server has two configurations.
-</br>The first set when the server starts and contains network information.
-</br>The second singleton configuration used to configure the mocks.
+</br>The first contains network information and set when the server starts.
+</br>The second configuration used to configure the mocks.
 </br>First ```Configuration``` sets when server created:
 ```kotlin
-    @get:Rule
-    val mockServer = okHttpMockServer(Configuration.custom {
-        host = "localhost"
-        port = 8888
-    })
+val mockServer = okHttpMockServer(Configuration.custom {
+    host = "localhost"
+    port = 8888
+})
 ```
 ```Configuration.custom``` block have ```host``` and ```port```. Sets the host and port on which the server will run. Make sure the port is not bind! 
 </br>By default server used ```Configuration.default()```. In it the host is the ```localhost```, and the port is any unbinded from ```50013``` to ```65535```.
 </br>
-</br> Second configuration singleton ```MockServerConfiguration``` contains ```converterFactory``` and ```defaultResponse```.
+</br> Second configuration singleton ```MockConfiguration``` contains ```converterFactory``` and ```defaultResponse```.
 ```kotlin
-    @get:Rule
-    val mockServer = okHttpMockServer(Configuration.custom {
-        host = "localhost"
-        port = 8888
-    }, {
-        converterFactory = object : ConverterFactory {
-            override fun <T> from(value: String, type: Type): T {
-                TODO("Not yet implemented")
-            }
-
-            override fun <T> to(value: T): String {
-                TODO("Not yet implemented")
-            }
-        }
-        defaultResponse = MockWebResponse(404, body = "Mock not found!")
-    })
-```
-```converterFactory``` - needed to parse a string into a model when matching the body of a request. Use the same method as in your project. Gson example:
-```kotlin
-    private val gsonConverterFactory = object : ConverterFactory {
-        private val gson = Gson()
+val mockServer = okHttpMockServer(Configuration.custom {
+    host = "localhost"
+    port = 8888
+}, {
+    converterFactory = object : ConverterFactory {
         override fun <T> from(value: String, type: Type): T {
-            return gson.fromJson(value, type)
+            TODO("Not yet implemented")
         }
 
         override fun <T> to(value: T): String {
-            return gson.toJson(value)
+            TODO("Not yet implemented")
         }
     }
+    defaultResponse = MockWebResponse(404, body = "Mock not found!")
+})
+```
+```converterFactory``` - needed to parse a string into a model when matching the body of a request. Use the same method as in your project. Gson example:
+```kotlin
+private val gsonConverterFactory = object : ConverterFactory {
+    private val gson = Gson()
+    override fun <T> from(value: String, type: Type): T {
+        return gson.fromJson(value, type)
+    }
+
+    override fun <T> to(value: T): String {
+        return gson.toJson(value)
+    }
+}
 ```
 ```defaultResponse``` - the default response if no mock is found when the client request for it. You can set any default response. By default ```MockWebResponse(404)```.
 ### Direct mock
@@ -106,9 +109,8 @@ val mock = mock("this/called/in/your/client") {
     body("response body")
 }
 ```
-That's all about direct url.
 ### Matcher mock
-Matcher mock a way to create combination by path, header, query, body:
+Matcher mock a way to create combination by path, header, query and body:
 #### Path matcher
 Sample for path equal ```/mock/url``` using ```eq``` matcher
 ```kotlin
@@ -186,11 +188,11 @@ val mock = mock {
     body("response body")
 }
 ```
-```any``` - triggers on any url
-</br>```eq``` - triggers when url in mock and url in client are equal
-</br>```startWith``` - triggers when client url starts with value in mock
-</br>```endsWith``` - triggers when client url ends with value in mock
-</br>```matches``` - triggers when url in client passed by regex value in mock url
+```any``` - triggers on any value
+</br>```eq``` - triggers when value in mock and value in client are equal
+</br>```startWith``` - triggers when client value starts with value in mock
+</br>```endsWith``` - triggers when client value ends with value in mock
+</br>```matches``` - triggers when value in client passed by regex value in mock
 </br></br>
 To combine matchers, you have to use: ```and```,```or```. Like this:
 ```kotlin

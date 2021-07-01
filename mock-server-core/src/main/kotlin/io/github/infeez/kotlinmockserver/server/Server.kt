@@ -8,10 +8,10 @@ import java.util.logging.Logger
 /**
  * Base abstract class to implement mock server.
  *
- * @param configuration - [Configuration] the configuration of the server.
+ * @param serverConfiguration - [ServerConfiguration] the configuration of the server.
  */
 abstract class Server(
-    val configuration: Configuration
+    val serverConfiguration: ServerConfiguration
 ) : Closeable {
 
     // TODO change logger to slf4j + logback + kotlin-logging

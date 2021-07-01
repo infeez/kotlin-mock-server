@@ -5,6 +5,7 @@ import com.google.gson.reflect.TypeToken
 import io.github.infeez.kotlinmockserver.converter.ConverterFactory
 import io.github.infeez.kotlinmockserver.dsl.http.context.MockServerContext
 import io.github.infeez.kotlinmockserver.dsl.http.mock
+import io.github.infeez.kotlinmockserver.extensions.changeMockBody
 import io.github.infeez.kotlinmockserver.extensions.copy
 import io.github.infeez.kotlinmockserver.extensions.mock
 import io.github.infeez.kotlinmockserver.matcher.and
@@ -16,7 +17,7 @@ import java.lang.reflect.Type
 import java.util.concurrent.TimeUnit.MILLISECONDS
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
-import org.junit.Ignore
+import kotlin.test.assertNull
 import org.junit.Test
 
 class MockServerV1Test {
@@ -440,16 +441,49 @@ class MockServerV1Test {
         assertEquals("response string a", response.body!!)
     }
 
-    @Ignore("Need to add get request from server")
+    @Test
+    fun `isNullOrEmpty null body test`() = runServer {
+        mock { path { eq("/some/path") } and body { isNullOrEmpty() } } on {
+            body(("response string a"))
+        }
+
+        val response = post(path = "/some/path", body = null)
+
+        assertEquals("response string a", response.body!!)
+    }
+
+    @Test
+    fun `isNullOrEmpty empty body test`() = runServer {
+        mock { path { eq("/some/path") } and body { isNullOrEmpty() } } on {
+            body(("response string a"))
+        }
+
+        val response = post(path = "/some/path", body = "")
+
+        assertEquals("response string a", response.body!!)
+    }
+
+    @Test
+    fun `isNullOrEmpty not null or empty body test`() = runServer {
+        mock { path { eq("/some/path") } and body { isNullOrEmpty() } } on {
+            body(("response string a"))
+        }
+
+        val response = post(path = "/some/path", body = "value")
+
+        assertNull(response.body)
+    }
+
+    // тест тут не нужен
     @Test
     fun `double read body test`() = runServer {
-        mock { path { eq("/some/path") } } on {
+        val mock = mock { path { eq("/some/path") } } on {
             body(defaultResponse)
         }
 
         post(path = "/some/path", body = "request string a")
 
-//        assertEquals("request string a", takeRequest().body.readUtf8())
+        assertEquals("request string a", getRequestByMock(mock)!!.body)
     }
 
     private fun getResultDefaultTest(url: String) {
@@ -469,7 +503,7 @@ class MockServerV1Test {
     }
 
     private fun postResultTest(url: String, bodyStr: String? = null, result: MockWebResponse.() -> Unit) {
-        result(post(path = url, body = bodyStr ?: ""))
+        result(post(path = url, body = bodyStr))
     }
 
     private fun runServer(block: MockServerContext.() -> Unit) {
@@ -482,7 +516,7 @@ class MockServerV1Test {
         server.stop()
     }
 
-    private fun request(method: RequestMethod, path: String, headers: Map<String, String> = emptyMap(), body: String = ""): MockWebResponse {
+    private fun request(method: RequestMethod, path: String, headers: Map<String, String> = emptyMap(), body: String? = ""): MockWebResponse {
         return server.request(
             MockWebRequest(
                 method = method.method,
@@ -502,7 +536,7 @@ class MockServerV1Test {
         )
     }
 
-    private fun post(path: String, headers: Map<String, String> = emptyMap(), body: String = ""): MockWebResponse {
+    private fun post(path: String, headers: Map<String, String> = emptyMap(), body: String? = ""): MockWebResponse {
         return request(
             method = RequestMethod.POST,
             path = path,

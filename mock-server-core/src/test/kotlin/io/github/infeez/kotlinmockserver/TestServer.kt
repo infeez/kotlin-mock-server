@@ -2,10 +2,10 @@ package io.github.infeez.kotlinmockserver
 
 import io.github.infeez.kotlinmockserver.mockmodel.MockWebRequest
 import io.github.infeez.kotlinmockserver.mockmodel.MockWebResponse
-import io.github.infeez.kotlinmockserver.server.Configuration
 import io.github.infeez.kotlinmockserver.server.Server
+import io.github.infeez.kotlinmockserver.server.ServerConfiguration
 
-class TestServer : Server(Configuration.custom { }) {
+class TestServer : Server(ServerConfiguration.custom { }) {
 
     private var timeStart = 0L
 

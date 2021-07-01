@@ -11,8 +11,8 @@ import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.RecordedRequest
 
 class OkHttpServer(
-    configuration: Configuration
-) : Server(configuration) {
+    serverConfiguration: ServerConfiguration
+) : Server(serverConfiguration) {
 
     private val mockWebServer = MockWebServer()
 
@@ -32,7 +32,7 @@ class OkHttpServer(
     }
 
     override fun start() {
-        mockWebServer.start(InetAddress.getByName(configuration.host), configuration.port)
+        mockWebServer.start(InetAddress.getByName(serverConfiguration.host), serverConfiguration.port)
     }
 
     override fun stop() {

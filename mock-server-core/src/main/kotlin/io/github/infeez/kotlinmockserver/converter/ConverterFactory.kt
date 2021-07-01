@@ -7,7 +7,6 @@ import java.lang.reflect.Type
  * You need to implement this interface in your project using your serialization.
  *
  * Please check documentation or simple project.
- *
  */
 interface ConverterFactory {
     /**

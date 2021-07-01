@@ -6,7 +6,7 @@ import io.github.infeez.kotlinmockserver.util.generatePort
  * Start-up configuration for mock server.
  *
  */
-class Configuration {
+class ServerConfiguration {
 
     /**
      * Port used by MockServer.
@@ -30,7 +30,7 @@ class Configuration {
          * Host always localhost.
          * Port any not bind of 50013 to 65535.
          */
-        fun default(): Configuration {
+        fun default(): ServerConfiguration {
             return custom {
                 port = generatePort()
             }
@@ -40,8 +40,8 @@ class Configuration {
          * DSL-context to set configuration params.
          *
          */
-        fun custom(block: Configuration.() -> Unit): Configuration {
-            return Configuration().apply(block)
+        fun custom(block: ServerConfiguration.() -> Unit): ServerConfiguration {
+            return ServerConfiguration().apply(block)
         }
     }
 }

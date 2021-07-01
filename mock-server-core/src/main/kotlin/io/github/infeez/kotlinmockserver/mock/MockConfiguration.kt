@@ -1,14 +1,14 @@
-package io.github.infeez.kotlinmockserver
+package io.github.infeez.kotlinmockserver.mock
 
 import io.github.infeez.kotlinmockserver.converter.ConverterFactory
 import io.github.infeez.kotlinmockserver.mockmodel.MockWebResponse
 
-/**
- *
- *
- */
-object MockServerConfiguration {
+object MockConfiguration {
 
+    /**
+     * Param used to parse a string into a model when matching the body of a request.
+     * Use the same method as in your project.
+     */
     var converterFactory: ConverterFactory? = null
         get() {
             if (field == null) {
@@ -17,5 +17,9 @@ object MockServerConfiguration {
             return field
         }
 
+    /**
+     * Default response if no mock is found when the client request for it. You can set any default response.
+     * By default code is 404.
+     */
     var defaultResponse: MockWebResponse = MockWebResponse(404)
 }

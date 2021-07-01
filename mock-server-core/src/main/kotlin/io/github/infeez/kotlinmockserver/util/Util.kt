@@ -3,7 +3,7 @@ package io.github.infeez.kotlinmockserver.util
 import java.net.DatagramSocket
 import java.net.ServerSocket
 
-fun generatePort(): Int {
+internal fun generatePort(): Int {
     val ports = 50013..65535
     var port = 0
     var generated = false

@@ -1,35 +1,42 @@
 package io.github.infeez.kotlinmockserver.dsl.http.context
 
-import io.github.infeez.kotlinmockserver.MockServerConfiguration
-import io.github.infeez.kotlinmockserver.extensions.copyResponse
 import io.github.infeez.kotlinmockserver.mock.Mock
+import io.github.infeez.kotlinmockserver.mock.MockConfiguration
+import io.github.infeez.kotlinmockserver.mockmodel.MockWebRequest
 import io.github.infeez.kotlinmockserver.server.Server
 import java.io.Closeable
 import java.lang.IllegalArgumentException
-import java.lang.reflect.Type
 
 /**
  * The main class that implements the work of the mock server.
  *
  * @param server   - value takes any implementation of [Server] abstract class.
- * @param settings - [MockServerConfiguration] settings of mock server.
+ * @param settings - [MockConfiguration] settings of mock server.
  */
 class MockServerContext(
     val server: Server,
-    settings: MockServerConfiguration.() -> Unit
+    settings: MockConfiguration.() -> Unit
 ) : Closeable {
 
     val mocks = mutableListOf<Mock>()
+    private val requests = mutableMapOf<Int, MockWebRequest>()
 
     init {
-        settings(MockServerConfiguration)
+        settings(MockConfiguration)
         server.onDispatch = { webRequest ->
             val path = webRequest.path
             val method = webRequest.method
             val body = webRequest.body
             val headers = webRequest.headers
 
-            mocks.find { mock -> mock.isCoincided(path, method, body, headers) }?.mockWebResponse ?: MockServerConfiguration.defaultResponse
+            val foundMock = mocks.find { mock -> mock.isCoincided(path, method, body, headers) }
+
+            if (foundMock?.mockWebResponse != null) {
+                requests[foundMock.hashCode()] = webRequest
+                foundMock.mockWebResponse
+            } else {
+                MockConfiguration.defaultResponse
+            }
         }
     }
 
@@ -97,13 +104,19 @@ class MockServerContext(
         }
     }
 
-    inline fun <reified T> changeMockBody(from: Mock, change: T.() -> Unit) {
-        val temp = mocks.find { it == from }?.mockWebResponse ?: error("Mock not found!")
-        mocks.find { it == from }?.mockWebResponse = temp.copyResponse(change)
+    /**
+     * Returns a list with all successfully mock server request.
+     */
+    fun getRequests(): List<MockWebRequest> {
+        return requests.values.toList()
     }
 
-    inline fun <T> changeMockBody(type: Type, from: Mock, change: T.() -> Unit) {
-        val temp = mocks.find { it == from }?.mockWebResponse ?: error("Mock not found!")
-        mocks.find { it == from }?.mockWebResponse = temp.copyResponse(type, change)
+    /**
+     * Returns a [MockWebRequest] successfully mock server request.
+     *
+     * @param mock - return by this mock hashCode()
+     */
+    fun getRequestByMock(mock: Mock): MockWebRequest? {
+        return requests[mock.hashCode()]
     }
 }

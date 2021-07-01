@@ -2,7 +2,6 @@ package io.github.infeez.kotlinmockserver.dsl.http.context
 
 /**
  * This class realise DSL-context to add and create HTTP-headers.
- *
  */
 class MockHeadersContext {
     internal val headers = mutableMapOf<String, String>()
