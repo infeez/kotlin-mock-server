@@ -1,4 +1,4 @@
-<p align="center">
+<p>
 <a href=""><img alt="Maven Central" src="https://img.shields.io/maven-central/v/io.github.infeez/kotlin-mock-server"></a>
 <a href="https://infeez.github.io/kotlin-mock-server/"><img src="https://img.shields.io/badge/code%20style-%E2%9D%A4-FF4081.svg" alt="kotlin-mock-server"></a>
 <a href="https://discord.gg/hJRtBZPQ"><img src="https://img.shields.io/discord/759394790835355658" alt="Join the chat"/></a>
