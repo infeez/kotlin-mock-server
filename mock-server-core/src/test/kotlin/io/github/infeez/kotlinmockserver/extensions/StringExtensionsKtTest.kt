@@ -1,8 +1,8 @@
 package io.github.infeez.kotlinmockserver.extensions
 
-import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import org.junit.Test
 
 class StringExtensionsKtTest {
 

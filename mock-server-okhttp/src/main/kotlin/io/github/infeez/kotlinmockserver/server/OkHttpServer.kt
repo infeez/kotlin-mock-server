@@ -2,13 +2,13 @@ package io.github.infeez.kotlinmockserver.server
 
 import io.github.infeez.kotlinmockserver.mockmodel.MockWebRequest
 import io.github.infeez.kotlinmockserver.mockmodel.MockWebResponse
+import java.net.InetAddress
+import java.util.concurrent.TimeUnit.MILLISECONDS
 import okhttp3.Headers.Companion.toHeaders
 import okhttp3.mockwebserver.Dispatcher
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.RecordedRequest
-import java.net.InetAddress
-import java.util.concurrent.TimeUnit.MILLISECONDS
 
 class OkHttpServer(
     configuration: Configuration

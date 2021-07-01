@@ -14,9 +14,12 @@ class MockServerRuleTest {
     fun ruleTest() {
         val server = mock<Server>()
 
-        server.asRule().apply(object : Statement() {
-            override fun evaluate() {}
-        }, Description.EMPTY).evaluate()
+        server.asRule().apply(
+            object : Statement() {
+                override fun evaluate() {}
+            },
+            Description.EMPTY
+        ).evaluate()
 
         verify(server).start()
         verify(server).stop()

@@ -12,12 +12,12 @@ import io.github.infeez.kotlinmockserver.matcher.or
 import io.github.infeez.kotlinmockserver.mockmodel.MockWebRequest
 import io.github.infeez.kotlinmockserver.mockmodel.MockWebResponse
 import io.github.infeez.kotlinmockserver.util.RequestMethod
-import org.junit.Ignore
-import org.junit.Test
 import java.lang.reflect.Type
 import java.util.concurrent.TimeUnit.MILLISECONDS
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
+import org.junit.Ignore
+import org.junit.Test
 
 class MockServerV1Test {
 
@@ -474,9 +474,11 @@ class MockServerV1Test {
 
     private fun runServer(block: MockServerContext.() -> Unit) {
         server.start()
-        block(MockServerContext(server) {
-            converterFactory = gsonConverterFactory
-        })
+        block(
+            MockServerContext(server) {
+                converterFactory = gsonConverterFactory
+            }
+        )
         server.stop()
     }
 
