@@ -67,19 +67,19 @@ For create custom server you need to inheritance Server abstract class. TBD
 The Mock server has two configurations.
 </br>The first contains network information and set when the server starts.
 </br>The second configuration used to configure the mocks.
-</br>First ```Configuration``` sets when server created:
+</br>First ```ServerConfiguration``` sets when server created:
 ```kotlin
-val mockServer = okHttpMockServer(Configuration.custom {
+val mockServer = okHttpMockServer(ServerConfiguration.custom {
     host = "localhost"
     port = 8888
 })
 ```
-```Configuration.custom``` block have ```host``` and ```port```. Sets the host and port on which the server will run. Make sure the port is not bind! 
-</br>By default server used ```Configuration.default()```. In it the host is the ```localhost```, and the port is any unbinded from ```50013``` to ```65535```.
+```ServerConfiguration.custom``` block have ```host``` and ```port```. Sets the host and port on which the server will run. Make sure the port is not bind! 
+</br>By default server used ```ServerConfiguration.default()```. In it the host is the ```localhost```, and the port is any unbinded from ```50013``` to ```65535```.
 </br>
 </br> Second configuration singleton ```MockConfiguration``` contains ```converterFactory``` and ```defaultResponse```.
 ```kotlin
-val mockServer = okHttpMockServer(Configuration.custom {
+val mockServer = okHttpMockServer(ServerConfiguration.custom {
     host = "localhost"
     port = 8888
 }, {
