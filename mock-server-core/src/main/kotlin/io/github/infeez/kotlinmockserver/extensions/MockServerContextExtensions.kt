@@ -66,6 +66,16 @@ inline fun <T> MockServerContext.changeMockBody(type: Type, from: Mock, change: 
     mocks.find { it == from }?.mockWebResponse = temp.copyResponse(type, change)
 }
 
+/**
+ * Change mock response params. Provides DSL-context for change.
+ *
+ * @param mock  - [Mock] a mock for change.
+ * @param block - DLS-context for change mock params.
+  */
+fun  MockServerContext.change(mock: Mock, block: MockResponseContext.() -> Unit) {
+    replace(mock, mock.copy(block))
+}
+
 class MockBuilderWrapper(
     private val context: MockServerContext,
     private val mockBuilder: MockBuilder

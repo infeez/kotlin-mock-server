@@ -3,7 +3,7 @@ package io.github.infeez.kotlinmockserver
 import io.github.infeez.kotlinmockserver.LoginMocks.loginByUserJohn
 import io.github.infeez.kotlinmockserver.dsl.http.context.MockContext
 import io.github.infeez.kotlinmockserver.dsl.http.okhttp.okHttpMockServer
-import io.github.infeez.kotlinmockserver.extensions.changeResponse
+import io.github.infeez.kotlinmockserver.extensions.change
 import io.github.infeez.kotlinmockserver.extensions.mocks
 import io.github.infeez.kotlinmockserver.junit4.extensions.asRule
 import kotlin.test.assertEquals
@@ -57,7 +57,7 @@ class LoginTestCase {
     fun `login server error test`() = testWorkFlow({
         +loginByUserJohn
     }) {
-        loginByUserJohn.changeResponse {
+        mockServer.change(loginByUserJohn) {
             code(500)
         }
         startAppAndLogin("John123", "123") {
