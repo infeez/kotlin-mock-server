@@ -1,21 +1,22 @@
-package io.github.infeez.kotlinmockserver.dsl.http
+package io.github.infeez.kotlinmockserver.dsl.http.okhttp
 
 import io.github.infeez.kotlinmockserver.dsl.http.context.MockServerContext
+import io.github.infeez.kotlinmockserver.dsl.http.mockServer
 import io.github.infeez.kotlinmockserver.mock.MockConfiguration
-import io.github.infeez.kotlinmockserver.server.NettyHttpServer
+import io.github.infeez.kotlinmockserver.server.OkHttpServer
 import io.github.infeez.kotlinmockserver.server.ServerConfiguration
 
 /**
- * Create a Netty mock server instance.
+ * Create a okHttp mock server instance.
  *
  * @param serverConfiguration - [ServerConfiguration] server configuration.
  * @param mockConfiguration   - configuration of mock server.
  * @param block               - DLS-context of [MockServerContext] for build mocks.
  */
-fun nettyHttpMockServer(
+fun okHttpMockServer(
     serverConfiguration: ServerConfiguration = ServerConfiguration.default(),
     mockConfiguration: MockConfiguration.() -> Unit = {},
     block: MockServerContext.() -> Unit = {}
 ): MockServerContext {
-    return mockServer(NettyHttpServer(serverConfiguration), mockConfiguration, block)
+    return mockServer(OkHttpServer(serverConfiguration), mockConfiguration, block)
 }

@@ -57,8 +57,10 @@ mockServer.mocks {
 ```
 You can use ```Rule``` JUnit4 to manage server lifecycle. You need to implement ```mock-server-junit4``` (See Installation page) for use and just add ```.asRule()``` like this:
 ```kotlin
+private val mockServer = okHttpMockServer()
+
 @get:Rule
-val mockServer = okHttpMockServer().asRule()
+val mockServerRule = mockServer.asRule()
 ```
 For create custom server you need to inheritance Server abstract class. TBD
 ### MockServer configuration
@@ -281,8 +283,10 @@ While the test is running, you can add, replace, change and remove mock.
 In some test case you may need it. Test's for example:
 #### Add new mock in runtime
 ```kotlin
+private val mockServer = okHttpMockServer()
+
 @get:Rule
-val mockServer = okHttpMockServer().asRule()
+val mockServerRule = mockServer.asRule()
 
 @Test
 fun `your awesome test need to add new mock`() {
@@ -296,10 +300,12 @@ fun `your awesome test need to add new mock`() {
 ```kotlin
 class LoginTestCase {
 
-    @get:Rule
-    val mockServer = okHttpMockServer {
+    private val mockServer = okHttpMockServer {
         add(LoginMocks.loginByUserJohn)
-    }.asRule()
+    }
+
+    @get:Rule
+    val mockServerRule = mockServer.asRule()
 
     @Test
     fun `your awesome test need to replace mock by other mock`() {
@@ -325,10 +331,12 @@ object LoginMocks {
 ```kotlin
 class LoginTestCase {
 
+    private val mockServer = okHttpMockServer {
+        add(LoginMocks.loginByUserJohn)
+    }
+
     @get:Rule
-    val mockServer = okHttpMockServer {
-        add(LoginMocks.loginJohnAsAdmin)
-    }.asRule()
+    val mockServerRule = mockServer.asRule()
 
     @Test
     fun `your awesome test need to change mock`() {
@@ -353,10 +361,12 @@ object LoginMocks {
 ```kotlin
 class LoginTestCase {
 
+    private val mockServer = okHttpMockServer {
+        addAll(LoginMocks.loginTestCase)
+    }
+
     @get:Rule
-    val mockServer = okHttpMockServer {
-        addAll(LoginMocks.loginJohnAsAdmin)
-    }.asRule()
+    val mockServerRule = mockServer.asRule()
 
     @Test
     fun `your awesome test need to remove mock`() {
@@ -378,7 +388,7 @@ object LoginMocks {
         body("""{ "userRole" : "ADMIN" }""")
     }
 
-    val loginJohnAsAdmin = mocks {
+    val loginTestCase = mocks {
         +loginByUserJohn
         +userDataIfUserAdmin
     }
