@@ -18,14 +18,14 @@ fun MockServerContext.mock(
     requestMethod: RequestMethod,
     url: String,
     mockBuilder: MockResponseContext.() -> Unit = {}
-): Mock  {
+): Mock {
     return io.github.infeez.kotlinmockserver.dsl.http.mock(requestMethod, url, mockBuilder).also(::add)
 }
 
 fun MockServerContext.mock(
     url: String,
     mockBuilder: MockResponseContext.() -> Unit = {}
-): Mock  {
+): Mock {
     return io.github.infeez.kotlinmockserver.dsl.http.mock(url, mockBuilder).also(::add)
 }
 
@@ -71,8 +71,8 @@ inline fun <T> MockServerContext.changeMockBody(type: Type, from: Mock, change: 
  *
  * @param mock  - [Mock] a mock for change.
  * @param block - DLS-context for change mock params.
-  */
-fun  MockServerContext.change(mock: Mock, block: MockResponseContext.() -> Unit) {
+ */
+fun MockServerContext.change(mock: Mock, block: MockResponseContext.() -> Unit) {
     replace(mock, mock.copy(block))
 }
 

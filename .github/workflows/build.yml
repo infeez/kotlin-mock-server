@@ -22,7 +22,7 @@ jobs:
 
       - name: ktlint
         run: |
-           gradle :ktlintCheck
+           gradle ktlintCheck
 
       - name: detekt
         run: |
