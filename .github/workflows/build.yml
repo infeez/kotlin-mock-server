@@ -18,7 +18,8 @@ jobs:
         run: |
           chmod +x ./gradlew
           chmod +x ./gradle/wrapper/gradle-wrapper.jar
-      - name: Code check
-        run: |
-           gradle ktlintCheck
-           gradle :detektFull
+      - name: ktlint
+        uses: ScaCap/action-ktlint@master
+        with:
+          github_token: ${{ secrets.GH_TOKEN_EXTERNAL }}
+          reporter: github-pr-review # Change reporter

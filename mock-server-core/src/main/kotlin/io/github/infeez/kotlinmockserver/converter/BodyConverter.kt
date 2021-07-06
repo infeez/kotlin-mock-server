@@ -5,7 +5,7 @@ import java.lang.reflect.Type
 sealed class BodyConverter<T> {
     abstract fun convert(src: String): T
 
-    object BodyString : BodyConverter<String>() {
+    object BodyString : BodyConverter<String>()            {
         override fun convert(src: String): String {
             return src
         }
