@@ -22,4 +22,3 @@ jobs:
         uses: ScaCap/action-ktlint@master
         with:
           github_token: ${{ secrets.GH_TOKEN_EXTERNAL }}
-          reporter: github-pr-review # Change reporter
