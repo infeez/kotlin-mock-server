@@ -25,7 +25,8 @@ jobs:
       - name: Codecov
         run: |
             ./gradlew build
-            ./gradlew testCoverage
-            ./gradlew jacocoMerge
+            ./gradlew test
+            ./gradlew jacocoTestReport
+            ./gradlew jacocoFullReport
             bash <(curl -s https://codecov.io/bash)
             ./gradlew run
