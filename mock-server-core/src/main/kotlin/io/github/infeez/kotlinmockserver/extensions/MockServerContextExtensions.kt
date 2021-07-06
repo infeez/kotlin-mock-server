@@ -18,7 +18,7 @@ fun MockServerContext.mock(
     requestMethod: RequestMethod,
     url: String,
     mockBuilder: MockResponseContext.() -> Unit = {}
-):      Mock {
+): Mock {
     return io.github.infeez.kotlinmockserver.dsl.http.mock(requestMethod, url, mockBuilder).also(::add)
 }
 
