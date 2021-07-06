@@ -14,23 +14,11 @@ jobs:
         with:
           java-version: '8'
           distribution: 'adopt'
-
-      - name: Before
+      - name: Before build
         run: |
           chmod +x ./gradlew
           chmod +x ./gradle/wrapper/gradle-wrapper.jar
-
-      - name: ktlint
+      - name: Code check
         run: |
            gradle ktlintCheck
-
-      - name: detekt
-        run: |
            gradle :detektFull
-
-      - name: Build with Gradle
-        run: ./gradlew build test
-      - uses: actions/upload-artifact@v2
-        with:
-          name: Package
-          path: build/libs
