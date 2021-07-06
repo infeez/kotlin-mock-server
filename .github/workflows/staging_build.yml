@@ -14,6 +14,7 @@ jobs:
         uses: actions/setup-java@v2
         with:
           java-version: '8'
+          distribution: 'adopt'
       - name: Before build
         run: |
           chmod +x ./gradlew
@@ -28,6 +29,6 @@ jobs:
         with:
           gradle-version: current
           arguments: build test jacocoFullReport
-      - name: Send jacoco to codecob
+      - name: Send jacoco to codecov
         run: |
           bash <(curl -s https://codecov.io/bash)
