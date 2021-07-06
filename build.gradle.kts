@@ -37,7 +37,7 @@ allprojects {
     val outputDir = "${project.buildDir}/reports/ktlint/"
     val inputFiles = project.fileTree(mapOf("dir" to "src", "include" to "**/*.kt"))
 
-    val ktlintCheck by tasks.creating(JavaExec::class) {
+    tasks.register<JavaExec>("ktlintCheck") {
         inputs.files(inputFiles)
         outputs.dir(outputDir)
 
@@ -48,7 +48,7 @@ allprojects {
         args = listOf("src/**/*.kt")
     }
 
-    val ktlintFormat by tasks.creating(JavaExec::class) {
+    tasks.register<JavaExec>("ktlintFormat") {
         inputs.files(inputFiles)
         outputs.dir(outputDir)
 

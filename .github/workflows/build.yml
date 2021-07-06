@@ -22,7 +22,11 @@ jobs:
 
       - name: ktlint
         run: |
-           gradle -q klintCheck
+           gradle :ktlintCheck
+
+      - name: detekt
+        run: |
+           gradle :detektFull
 
       - name: Build with Gradle
         run: ./gradlew build -x test
