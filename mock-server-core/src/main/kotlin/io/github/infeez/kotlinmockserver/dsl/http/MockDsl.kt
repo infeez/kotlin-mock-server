@@ -14,7 +14,8 @@ import io.github.infeez.kotlinmockserver.util.RequestMethod
  * @param url           - [String] Set url for check incoming url in your client for mock response.
  * @param mockBuilder   - [MockResponseContext] DSL-context for build http mock response(code|headers|body|etc).
  *
- * @return a mock [Mock] type for use in MockServer. Also you need to add this created object to your mock list or MockServer mocks.
+ * @return a mock [Mock] type for use in MockServer.
+ * Also you need to add this created object to your mock list or MockServer mocks.
  */
 fun mock(
     requestMethod: RequestMethod,
@@ -34,7 +35,8 @@ fun mock(
  * @param url         - [String] Set url for check incoming url in your client for mock response.
  * @param mockBuilder - [MockResponseContext] DSL-context for build http mock response(code|headers|body|etc).
  *
- * @return a mock [Mock] type for use in MockServer. Also you need to add this created object to your mock list or MockServer mocks.
+ * @return a mock [Mock] type for use in MockServer.
+ * Also you need to add this created object to your mock list or MockServer mocks.
  */
 fun mock(
     url: String,
@@ -52,7 +54,8 @@ fun mock(
  * @param requestMethod - [RequestMethod] Set HTTP-method type
  * @param matcher       - [MockMatcherContext] DSL-context for build matcher for request in your client.
  *
- * @return a mock [Mock] type for use in MockServer. Also you need to add this created object to your mock list or MockServer mocks.
+ * @return a mock [Mock] type for use in MockServer.
+ * Also you need to add this created object to your mock list or MockServer mocks.
  */
 fun mock(
     requestMethod: RequestMethod,
@@ -69,7 +72,8 @@ fun mock(
  *
  * @param matcher- [MockMatcherContext] DSL-context for build matcher for request in your client.
  *
- * @return a mock [Mock] type for use in MockServer. Also you need to add this created object to your mock list or MockServer mocks.
+ * @return a mock [Mock] type for use in MockServer.
+ * Also you need to add this created object to your mock list or MockServer mocks.
  */
 fun mock(
     matcher: MockMatcherContext.() -> RequestMatcher

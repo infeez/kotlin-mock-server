@@ -516,7 +516,12 @@ class MockServerV1Test {
         server.stop()
     }
 
-    private fun request(method: RequestMethod, path: String, headers: Map<String, String> = emptyMap(), body: String? = ""): MockWebResponse {
+    private fun request(
+        method: RequestMethod,
+        path: String,
+        headers: Map<String, String> = emptyMap(),
+        body: String? = ""
+    ): MockWebResponse {
         return server.request(
             MockWebRequest(
                 method = method.method,

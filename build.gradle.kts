@@ -33,6 +33,17 @@ detekt {
     }
 }
 
+tasks.register<io.gitlab.arturbosch.detekt.Detekt>("detektFull") {
+    parallel = true
+    autoCorrect = true
+    description = "Runs a full detekt check."
+    setSource(files(projectDir))
+    include("**/*.kt")
+    include("**/*.kts")
+    exclude("resources/")
+    exclude("build/")
+}
+
 allprojects {
     val outputDir = "${project.buildDir}/reports/ktlint/"
     val inputFiles = project.fileTree(mapOf("dir" to "src", "include" to "**/*.kt"))
@@ -57,17 +68,6 @@ allprojects {
         classpath = ktlint
         main = "com.pinterest.ktlint.Main"
         args = listOf("-F", "src/**/*.kt")
-    }
-
-    tasks.register<io.gitlab.arturbosch.detekt.Detekt>("detektFull") {
-        parallel = true
-        autoCorrect = true
-        description = "Runs a full detekt check."
-        setSource(files(projectDir))
-        include("**/*.kt")
-        include("**/*.kts")
-        exclude("resources/")
-        exclude("build/")
     }
 
     repositories {

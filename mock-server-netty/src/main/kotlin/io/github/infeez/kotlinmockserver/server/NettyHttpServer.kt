@@ -25,6 +25,7 @@ import io.netty.handler.codec.http.HttpRequestDecoder
 import io.netty.handler.codec.http.HttpResponseEncoder
 import io.netty.handler.codec.http.HttpResponseStatus
 import io.netty.handler.codec.http.HttpVersion
+import java.io.IOException
 import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.nio.charset.Charset
@@ -60,7 +61,7 @@ class NettyHttpServer(serverConfiguration: ServerConfiguration) : Server(serverC
             try {
                 val inet = InetSocketAddress(InetAddress.getByName(serverConfiguration.host), serverConfiguration.port)
                 val serverBootstrap = ServerBootstrap().apply {
-                    option(ChannelOption.SO_BACKLOG, 1024)
+                    option(ChannelOption.SO_BACKLOG, SO_BACKLOG)
                     option(ChannelOption.SO_REUSEADDR, true)
                     group(loopGroup).channel(serverChannelClass).childHandler(WebServerInitializer())
                     option(ChannelOption.MAX_MESSAGES_PER_READ, Int.MAX_VALUE)
@@ -70,7 +71,7 @@ class NettyHttpServer(serverConfiguration: ServerConfiguration) : Server(serverC
                 }
 
                 serverBootstrap.bind(inet).sync().channel().closeFuture().sync()
-            } catch (t: Throwable) {
+            } catch (t: IOException) {
                 logger.log(Level.WARNING, t.message)
             } finally {
                 loopGroup.shutdownGracefully().sync()
@@ -86,8 +87,8 @@ class NettyHttpServer(serverConfiguration: ServerConfiguration) : Server(serverC
     private inner class WebServerInitializer : ChannelInitializer<SocketChannel>() {
         public override fun initChannel(ch: SocketChannel) {
             ch.pipeline().apply {
-                addLast("decoder", HttpRequestDecoder(4096, 8192, 8192, false))
-                addLast("aggregator", HttpObjectAggregator(100 * 1024 * 1024))
+                addLast("decoder", HttpRequestDecoder(MAX_INITIAL_LINE_LENGTH, MAX_HEADER_SIZE, MAX_CHUNK_SIZE, false))
+                addLast("aggregator", HttpObjectAggregator(MAX_CONTENT_LENGTH))
                 addLast("encoder", HttpResponseEncoder())
                 addLast("handler", WebServerHandler())
             }
@@ -100,7 +101,12 @@ class NettyHttpServer(serverConfiguration: ServerConfiguration) : Server(serverC
                 return
             }
 
-            val mockWebRequest = MockWebRequest(msg.method().name(), msg.uri(), msg.headers().associate { it.key to it.value }, msg.content().copy().toString(Charset.forName("utf-8")))
+            val mockWebRequest = MockWebRequest(
+                method = msg.method().name(),
+                path = msg.uri(),
+                headers = msg.headers().associate { it.key to it.value },
+                body = msg.content().copy().toString(Charset.forName("utf-8"))
+            )
 
             onDispatch.invoke(mockWebRequest).let {
                 writeResponse(ctx, it.code, it.body, it.headers, it.mockWebResponseParams.delay)
@@ -144,5 +150,13 @@ class NettyHttpServer(serverConfiguration: ServerConfiguration) : Server(serverC
         if (delayMs != 0L) {
             Thread.sleep(delayMs)
         }
+    }
+
+    companion object {
+        private const val SO_BACKLOG = 1024
+        private const val MAX_INITIAL_LINE_LENGTH = 4096
+        private const val MAX_HEADER_SIZE = 8192
+        private const val MAX_CHUNK_SIZE = 8192
+        private const val MAX_CONTENT_LENGTH = 100 * 1024 * 1024
     }
 }

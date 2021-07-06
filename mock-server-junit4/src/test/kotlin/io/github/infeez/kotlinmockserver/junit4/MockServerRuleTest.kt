@@ -16,7 +16,9 @@ class MockServerRuleTest {
 
         server.asRule().apply(
             object : Statement() {
-                override fun evaluate() {}
+                override fun evaluate() {
+                    // do nothing
+                }
             },
             Description.EMPTY
         ).evaluate()

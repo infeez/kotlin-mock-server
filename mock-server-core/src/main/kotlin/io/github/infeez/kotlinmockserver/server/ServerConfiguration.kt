@@ -1,6 +1,6 @@
 package io.github.infeez.kotlinmockserver.server
 
-import io.github.infeez.kotlinmockserver.util.generatePort
+import io.github.infeez.kotlinmockserver.util.Util.generatePort
 
 /**
  * Start-up configuration for mock server.

@@ -35,23 +35,31 @@ class TestApplication {
             if (body.isNullOrEmpty()) {
                 Result.Error(RuntimeException("Body empty"))
             } else {
-                val user = gson.fromJson(body, User::class.java)
-                if (users.find { it.username == user.username }?.username == username) {
-                    if (users.find { it.username == user.username }?.password == password) {
-                        Result.Success(user)
-                    } else {
-                        Result.Error(RuntimeException("Incorrect password"))
-                    }
-                } else {
-                    Result.Error(RuntimeException("User not found"))
-                }
+                checkUserCredentials(body, username, password)
             }
         } else {
-            if (loginResult.code == 404) {
+            if (loginResult.code == HTTP_NOT_FOUND) {
                 Result.Error(RuntimeException("User not found"))
             } else {
                 Result.Error(RuntimeException("Login error. Code: " + loginResult.code))
             }
         }
+    }
+
+    private fun checkUserCredentials(body: String, username: String, password: String): Result {
+        val user = gson.fromJson(body, User::class.java)
+        return if (users.find { it.username == user.username }?.username == username) {
+            if (users.find { it.username == user.username }?.password == password) {
+                Result.Success(user)
+            } else {
+                Result.Error(RuntimeException("Incorrect password"))
+            }
+        } else {
+            Result.Error(RuntimeException("User not found"))
+        }
+    }
+
+    companion object {
+        const val HTTP_NOT_FOUND = 404
     }
 }
