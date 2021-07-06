@@ -1,7 +1,10 @@
 val ktlint by configurations.creating
 
+val jacocoVersion = "0.8.7"
+val ktlintVersion = "0.41.0"
+
 dependencies {
-    ktlint("com.pinterest:ktlint:0.41.0") {
+    ktlint("com.pinterest:ktlint:$ktlintVersion") {
         attributes {
             attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.EXTERNAL))
         }
@@ -24,6 +27,10 @@ plugins {
     id("io.gitlab.arturbosch.detekt") version "1.17.1"
     jacoco
     java
+}
+
+jacoco {
+    toolVersion = jacocoVersion
 }
 
 detekt {
@@ -51,10 +58,10 @@ allprojects {
     apply(plugin = "java")
 
     jacoco {
-        toolVersion = "0.8.7"
+        toolVersion = jacocoVersion
     }
 
-    tasks.withType<JacocoReport>() {
+    tasks.jacocoTestReport {
         reports {
             html.isEnabled = true
             xml.isEnabled = true
@@ -62,15 +69,15 @@ allprojects {
     }
 
     tasks.register<JacocoReport>("jacocoFullReport") {
+        group = "verification"
         subprojects {
             val subproject = this
             subproject.plugins.withType<JacocoPlugin>().configureEach {
                 subproject.tasks.matching { it.extensions.findByType<JacocoTaskExtension>() != null }.configureEach {
-                    val testTask = this
-                    try {
+                    if (File("${buildDir}/jacoco/test.exec").exists()) {
                         sourceSets(subproject.the<SourceSetContainer>()["main"])
-                        executionData(testTask)
-                    } catch (e: Throwable){}
+                        executionData(this)
+                    }
                 }
             }
         }
@@ -81,6 +88,7 @@ allprojects {
             html.isEnabled = true
             html.destination = File("${buildDir}/reports/jacoco/report/test/html")
         }
+        dependsOn(tasks.jacocoTestReport)
     }
 
     val outputDir = "${project.buildDir}/reports/ktlint/"
