@@ -3,6 +3,7 @@ name: build staging artifcats
 on:
   push:
     branches: [ develop ]
+  pull_request:
 
 jobs:
   build:
@@ -13,18 +14,20 @@ jobs:
         uses: actions/setup-java@v2
         with:
           java-version: '8'
-          distribution: 'adopt'
       - name: Before build
         run: |
           chmod +x ./gradlew
           chmod +x ./gradle/wrapper/gradle-wrapper.jar
       - name: Code check
+        uses: eskatos/gradle-command-action@v1
+        with:
+          gradle-version: current
+          arguments: ktlintCheck detektFull
+      - name: Generate jacoco
+        uses: eskatos/gradle-command-action@v1
+        with:
+          gradle-version: current
+          arguments: build test jacocoFullReport
+      - name: Send jacoco to codecob
         run: |
-           gradle ktlintCheck
-           gradle :detektFull
-      - name: Codecov
-        run: |
-            ./gradlew build
-            ./gradlew test
-            ./gradlew jacocoFullReport
-            bash <(curl -s https://codecov.io/bash)
+          bash <(curl -s https://codecov.io/bash)
