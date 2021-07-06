@@ -18,7 +18,7 @@ jobs:
         run: |
           chmod +x ./gradlew
           chmod +x ./gradle/wrapper/gradle-wrapper.jar
-      - name: ktlint
-        uses: ScaCap/action-ktlint@master
-        with:
-          github_token: ${{ secrets.GH_TOKEN_EXTERNAL }}
+      - name: Code check
+        run: |
+           gradle ktlintCheck
+           gradle :detektFull
