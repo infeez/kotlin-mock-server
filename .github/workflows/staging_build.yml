@@ -32,3 +32,10 @@ jobs:
       - name: Send jacoco to codecov
         run: |
           bash <(curl -s https://codecov.io/bash)
+      - uses: actions/upload-artifact@v2
+        with:
+          name: kotlin-mock-server_libs
+          path: |
+            mock-server-core/build/libs
+            mock-server-junit4/build/libs
+            mock-server-okhttp/build/libs
