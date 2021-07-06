@@ -22,6 +22,8 @@ buildscript {
 plugins {
     id("org.jetbrains.dokka") version "1.4.32"
     id("io.gitlab.arturbosch.detekt") version "1.17.1"
+    jacoco
+    java
 }
 
 detekt {
@@ -48,25 +50,37 @@ allprojects {
     apply(plugin = "jacoco")
     apply(plugin = "java")
 
-    tasks.withType<JacocoReport> {
+    jacoco {
+        toolVersion = "0.8.7"
+    }
+
+    tasks.withType<JacocoReport>() {
         reports {
             html.isEnabled = true
+            xml.isEnabled = true
         }
     }
 
-    val testCoverage by tasks.registering {
-        group = "verification"
-        description = "Runs the unit tests with coverage."
+    tasks.register<JacocoReport>("jacocoFullReport") {
+        subprojects {
+            val subproject = this
+            subproject.plugins.withType<JacocoPlugin>().configureEach {
+                subproject.tasks.matching { it.extensions.findByType<JacocoTaskExtension>() != null }.configureEach {
+                    val testTask = this
+                    try {
+                        sourceSets(subproject.the<SourceSetContainer>()["main"])
+                        executionData(testTask)
+                    } catch (e: Throwable){}
+                }
+            }
+        }
 
-        dependsOn("test", "jacocoTestReport")
-        val jacocoTestReport = tasks.findByName("jacocoTestReport")
-        jacocoTestReport?.mustRunAfter(tasks.findByName("test"))
-    }
-
-    tasks.register<JacocoMerge>("jacocoMerge") {
-        destinationFile = File("${rootProject.buildDir}/jacoco/allTestCoverage.exec")
-
-        executionData(fileTree(project.rootDir.absolutePath).include("**/build/jacoco/*.exec"))
+        reports {
+            xml.isEnabled = true
+            xml.destination = File("${buildDir}/reports/jacoco/report/test/jacocoTestReport.xml")
+            html.isEnabled = true
+            html.destination = File("${buildDir}/reports/jacoco/report/test/html")
+        }
     }
 
     val outputDir = "${project.buildDir}/reports/ktlint/"
@@ -92,10 +106,6 @@ allprojects {
         classpath = ktlint
         main = "com.pinterest.ktlint.Main"
         args = listOf("-F", "src/**/*.kt")
-    }
-
-    tasks.register<Delete>("cleanBuild") {
-        delete(buildDir)
     }
 
     repositories {

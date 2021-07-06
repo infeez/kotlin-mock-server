@@ -16,7 +16,6 @@ dependencies {
     api(project(":mock-server-core"))
     api(Dependencies.junit4)
 
-    testImplementation(project(":mock-server-okhttp"))
     testImplementation(Dependencies.kotlinTest)
     testImplementation(Dependencies.mockitoKotlin)
 }
