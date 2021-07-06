@@ -21,6 +21,16 @@ buildscript {
 
 plugins {
     id("org.jetbrains.dokka") version "1.4.32"
+    id("io.gitlab.arturbosch.detekt") version "1.17.1"
+}
+
+detekt {
+    buildUponDefaultConfig = true
+    allRules = false
+    config = files("$projectDir/config/detekt.yml")
+    reports {
+        html.enabled = true
+    }
 }
 
 allprojects {
@@ -49,6 +59,16 @@ allprojects {
         args = listOf("-F", "src/**/*.kt")
     }
 
+    tasks.register<io.gitlab.arturbosch.detekt.Detekt>("detektFull") {
+        parallel = true
+        autoCorrect = true
+        description = "Runs a full detekt check."
+        setSource(files(projectDir))
+        include("**/*.kt")
+        include("**/*.kts")
+        exclude("resources/")
+        exclude("build/")
+    }
 
     repositories {
         google()
