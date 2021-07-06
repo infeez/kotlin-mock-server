@@ -22,3 +22,9 @@ jobs:
         run: |
            gradle ktlintCheck
            gradle :detektFull
+      - name: Codecov
+        run: |
+            ./gradlew build
+            ./gradlew test
+            bash <(curl -s https://codecov.io/bash)
+            ./gradlew run
