@@ -45,6 +45,30 @@ tasks.register<io.gitlab.arturbosch.detekt.Detekt>("detektFull") {
 }
 
 allprojects {
+    apply(plugin = "jacoco")
+    apply(plugin = "java")
+
+    tasks.withType<JacocoReport> {
+        reports {
+            html.isEnabled = true
+        }
+    }
+
+    val testCoverage by tasks.registering {
+        group = "verification"
+        description = "Runs the unit tests with coverage."
+
+        dependsOn("test", "jacocoTestReport")
+        val jacocoTestReport = tasks.findByName("jacocoTestReport")
+        jacocoTestReport?.mustRunAfter(tasks.findByName("test"))
+    }
+
+    tasks.register<JacocoMerge>("jacocoMerge") {
+        destinationFile = File("${rootProject.buildDir}/jacoco/allTestCoverage.exec")
+
+        executionData(fileTree(project.rootDir.absolutePath).include("**/build/jacoco/*.exec"))
+    }
+
     val outputDir = "${project.buildDir}/reports/ktlint/"
     val inputFiles = project.fileTree(mapOf("dir" to "src", "include" to "**/*.kt"))
 
@@ -68,6 +92,10 @@ allprojects {
         classpath = ktlint
         main = "com.pinterest.ktlint.Main"
         args = listOf("-F", "src/**/*.kt")
+    }
+
+    tasks.register<Delete>("cleanBuild") {
+        delete(buildDir)
     }
 
     repositories {

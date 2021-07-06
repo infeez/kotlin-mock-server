@@ -18,13 +18,14 @@ jobs:
         run: |
           chmod +x ./gradlew
           chmod +x ./gradle/wrapper/gradle-wrapper.jar
-      - name: Code check
-        run: |
-           gradle ktlintCheck
-           gradle :detektFull
+#      - name: Code check
+#        run: |
+#           gradle ktlintCheck
+#           gradle :detektFull
       - name: Codecov
         run: |
             ./gradlew build
-            ./gradlew test
+            ./gradlew testCoverage
+            ./gradlew jacocoMerge
             bash <(curl -s https://codecov.io/bash)
             ./gradlew run
