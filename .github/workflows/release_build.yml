@@ -2,7 +2,7 @@ name: release
 
 on:
   push:
-    branches: [ prepare_to_publish ]
+    branches: [ preparing_to_publish ]
     tags:
       - 'v*'
 
