@@ -1,4 +1,5 @@
 <p>
+<a href=""><img alt="Release build status" src="https://github.com/infeez/kotlin-mock-server/actions/workflows/staging_build.yml/badge.svg"></a>
 <a href=""><img alt="Maven Central" src="https://img.shields.io/maven-central/v/io.github.infeez/kotlin-mock-server"></a>
 <a href="https://codecov.io/gh/infeez/kotlin-mock-server"><img src="https://codecov.io/gh/infeez/kotlin-mock-server/branch/develop/graph/badge.svg?token=2YnIZtQEgz"/></a>
 <a href="https://infeez.github.io/kotlin-mock-server/"><img src="https://img.shields.io/badge/code%20style-%E2%9D%A4-FF4081.svg" alt="kotlin-mock-server"></a>
