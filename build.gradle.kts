@@ -32,6 +32,7 @@ plugins {
     id("io.gitlab.arturbosch.detekt") version "1.17.1"
     jacoco
     java
+    id("com.vanniktech.maven.publish") version "0.17.0"
 }
 
 jacoco {
