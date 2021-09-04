@@ -1,8 +1,5 @@
 import io.gitlab.arturbosch.detekt.Detekt
 
-group = "io.github.infeez.kotlinmockserver"
-version = System.getenv("RELEASE_VERSION") ?: "0.0.0"
-
 val ktlint by configurations.creating
 
 val jacocoVersion = "0.8.7"
@@ -60,6 +57,16 @@ tasks.register<Detekt>("detektFull") {
 }
 
 allprojects {
+
+    group = "io.github.infeez.kotlin-mock-server"
+    version = System.getenv("RELEASE_VERSION") ?: "0.0.0"
+
+    plugins.withId("com.vanniktech.maven.publish") {
+        mavenPublish {
+            sonatypeHost = com.vanniktech.maven.publish.SonatypeHost.S01
+        }
+    }
+
     repositories {
         google()
         mavenCentral()
