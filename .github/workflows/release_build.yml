@@ -22,6 +22,10 @@ jobs:
           chmod +x ./gradlew
           chmod +x ./gradle/wrapper/gradle-wrapper.jar
 
+      - name: Prepare release
+        run: |
+          echo "RELEASE_VERSION=${GITHUB_REF:11}" >> $GITHUB_ENV
+
       - name: Upload release
         run: ./gradlew publishAllPublicationsToMavenCentralRepository --no-daemon --no-parallel
         env:
