@@ -1,3 +1,5 @@
+import io.gitlab.arturbosch.detekt.Detekt
+
 val ktlint by configurations.creating
 
 val jacocoVersion = "0.8.7"
@@ -27,6 +29,7 @@ plugins {
     id("io.gitlab.arturbosch.detekt") version "1.17.1"
     jacoco
     java
+    id("com.vanniktech.maven.publish") version "0.17.0"
 }
 
 jacoco {
@@ -42,7 +45,7 @@ detekt {
     }
 }
 
-tasks.register<io.gitlab.arturbosch.detekt.Detekt>("detektFull") {
+tasks.register<Detekt>("detektFull") {
     parallel = true
     autoCorrect = true
     description = "Runs a full detekt check."
@@ -54,6 +57,21 @@ tasks.register<io.gitlab.arturbosch.detekt.Detekt>("detektFull") {
 }
 
 allprojects {
+
+    group = "io.github.infeez.kotlin-mock-server"
+    version = System.getenv("RELEASE_VERSION") ?: "0.0.0"
+
+    plugins.withId("com.vanniktech.maven.publish") {
+        mavenPublish {
+            sonatypeHost = com.vanniktech.maven.publish.SonatypeHost.S01
+        }
+    }
+
+    repositories {
+        google()
+        mavenCentral()
+    }
+
     apply(plugin = "jacoco")
     apply(plugin = "java")
 
@@ -61,63 +79,56 @@ allprojects {
         toolVersion = jacocoVersion
     }
 
-    tasks.jacocoTestReport {
-        reports {
-            html.isEnabled = true
-            xml.isEnabled = true
-        }
-    }
-
-    tasks.register<JacocoReport>("jacocoFullReport") {
-        group = "verification"
-        subprojects {
-            val subproject = this
-            subproject.plugins.withType<JacocoPlugin>().configureEach {
-                subproject.tasks.matching { it.extensions.findByType<JacocoTaskExtension>() != null }.configureEach {
-                    if (File("${buildDir}/jacoco/test.exec").exists()) {
-                        sourceSets(subproject.the<SourceSetContainer>()["main"])
-                        executionData(this)
-                    }
-                }
+    tasks {
+        jacocoTestReport {
+            reports {
+                html.isEnabled = true
+                xml.isEnabled = true
             }
         }
 
-        reports {
-            xml.isEnabled = true
-            xml.destination = File("${buildDir}/reports/jacoco/report/test/jacocoTestReport.xml")
-            html.isEnabled = true
-            html.destination = File("${buildDir}/reports/jacoco/report/test/html")
+        register<JacocoReport>("jacocoFullReport") {
+            group = "verification"
+            subprojects {
+                plugins.withType<JacocoPlugin>().configureEach {
+                    tasks.matching { it.extensions.findByType<JacocoTaskExtension>() != null }.configureEach {
+                        if (File("${buildDir}/jacoco/test.exec").exists()) {
+                            sourceSets(this@subprojects.the<SourceSetContainer>()["main"])
+                            executionData(this)
+                        }
+                    }
+                }
+            }
+
+            reports {
+                xml.isEnabled = true
+                xml.destination = File("${buildDir}/reports/jacoco/report/test/jacocoTestReport.xml")
+                html.isEnabled = true
+                html.destination = File("${buildDir}/reports/jacoco/report/test/html")
+            }
+            dependsOn(jacocoTestReport)
         }
-        dependsOn(tasks.jacocoTestReport)
-    }
 
-    val outputDir = "${project.buildDir}/reports/ktlint/"
-    val inputFiles = project.fileTree(mapOf("dir" to "src", "include" to "**/*.kt"))
+        register<JavaExec>("ktlintCheck") {
+            inputs.files(project.fileTree(mapOf("dir" to "src", "include" to "**/*.kt")))
+            outputs.dir("${project.buildDir}/reports/ktlint/")
 
-    tasks.register<JavaExec>("ktlintCheck") {
-        inputs.files(inputFiles)
-        outputs.dir(outputDir)
+            group = "verification"
+            description = "Check Kotlin code style."
+            classpath = ktlint
+            main = "com.pinterest.ktlint.Main"
+            args = listOf("src/**/*.kt")
+        }
 
-        group = "verification"
-        description = "Check Kotlin code style."
-        classpath = ktlint
-        main = "com.pinterest.ktlint.Main"
-        args = listOf("src/**/*.kt")
-    }
+        register<JavaExec>("ktlintFormat") {
+            inputs.files(project.fileTree(mapOf("dir" to "src", "include" to "**/*.kt")))
+            outputs.dir("${project.buildDir}/reports/ktlint/")
 
-    tasks.register<JavaExec>("ktlintFormat") {
-        inputs.files(inputFiles)
-        outputs.dir(outputDir)
-
-        group = "verification"
-        description = "Fix Kotlin code style deviations."
-        classpath = ktlint
-        main = "com.pinterest.ktlint.Main"
-        args = listOf("-F", "src/**/*.kt")
-    }
-
-    repositories {
-        google()
-        mavenCentral()
+            group = "verification"
+            description = "Fix Kotlin code style deviations."
+            classpath = ktlint
+            main = "com.pinterest.ktlint.Main"
+            args = listOf("-F", "src/**/*.kt")
+        }
     }
 }
