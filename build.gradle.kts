@@ -1,43 +1,134 @@
-group = "kotlin-mock-server"
-version = "0.7.5"
+import io.gitlab.arturbosch.detekt.Detekt
 
-plugins {
-    java
-    kotlin("jvm") version "1.3.61"
-    id("maven")
-    id("org.jlleitschuh.gradle.ktlint") version "9.1.1"
-}
+val ktlint by configurations.creating
 
-repositories {
-    mavenCentral()
-}
+val jacocoVersion = "0.8.7"
+val ktlintVersion = "0.41.0"
 
 dependencies {
-    implementation(kotlin("stdlib"))
-    implementation(kotlin("reflect"))
-    implementation("com.squareup.okhttp3", "mockwebserver", "4.2.1")
-    implementation("io.github.rybalkinsd", "kohttp", "0.12.0")
-
-    testImplementation("com.google.code.gson", "gson", "2.8.6")
-    testImplementation(kotlin("test-junit"))
-}
-
-configure<JavaPluginConvention> {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
-}
-
-ktlint {
-    verbose.set(true)
-    outputToConsole.set(true)
-    coloredOutput.set(true)
-    filter {
-        exclude("**/style-violations.kt")
+    ktlint("com.pinterest:ktlint:$ktlintVersion") {
+        attributes {
+            attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.EXTERNAL))
+        }
     }
 }
 
-tasks.compileJava {
-    options.isIncremental = true
-    options.isFork = true
-    options.isFailOnError = false
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.20")
+        classpath("com.android.tools.build:gradle:4.2.0") // IDEA issue with 4.2 - https://youtrack.jetbrains.com/issue/IDEA-268968
+    }
+}
+
+plugins {
+    id("org.jetbrains.dokka") version "1.4.32"
+    id("io.gitlab.arturbosch.detekt") version "1.17.1"
+    jacoco
+    java
+    id("com.vanniktech.maven.publish") version "0.17.0"
+}
+
+jacoco {
+    toolVersion = jacocoVersion
+}
+
+detekt {
+    buildUponDefaultConfig = true
+    allRules = false
+    config = files("$projectDir/config/detekt.yml")
+    reports {
+        html.enabled = true
+    }
+}
+
+tasks.register<Detekt>("detektFull") {
+    parallel = true
+    autoCorrect = true
+    description = "Runs a full detekt check."
+    setSource(files(projectDir))
+    include("**/*.kt")
+    include("**/*.kts")
+    exclude("resources/")
+    exclude("build/")
+}
+
+allprojects {
+
+    group = "io.github.infeez.kotlin-mock-server"
+    version = System.getenv("RELEASE_VERSION") ?: "0.0.0"
+
+    plugins.withId("com.vanniktech.maven.publish") {
+        mavenPublish {
+            sonatypeHost = com.vanniktech.maven.publish.SonatypeHost.S01
+        }
+    }
+
+    repositories {
+        google()
+        mavenCentral()
+    }
+
+    apply(plugin = "jacoco")
+    apply(plugin = "java")
+
+    jacoco {
+        toolVersion = jacocoVersion
+    }
+
+    tasks {
+        jacocoTestReport {
+            reports {
+                html.isEnabled = true
+                xml.isEnabled = true
+            }
+        }
+
+        register<JacocoReport>("jacocoFullReport") {
+            group = "verification"
+            subprojects {
+                plugins.withType<JacocoPlugin>().configureEach {
+                    tasks.matching { it.extensions.findByType<JacocoTaskExtension>() != null }.configureEach {
+                        if (File("${buildDir}/jacoco/test.exec").exists()) {
+                            sourceSets(this@subprojects.the<SourceSetContainer>()["main"])
+                            executionData(this)
+                        }
+                    }
+                }
+            }
+
+            reports {
+                xml.isEnabled = true
+                xml.destination = File("${buildDir}/reports/jacoco/report/test/jacocoTestReport.xml")
+                html.isEnabled = true
+                html.destination = File("${buildDir}/reports/jacoco/report/test/html")
+            }
+            dependsOn(jacocoTestReport)
+        }
+
+        register<JavaExec>("ktlintCheck") {
+            inputs.files(project.fileTree(mapOf("dir" to "src", "include" to "**/*.kt")))
+            outputs.dir("${project.buildDir}/reports/ktlint/")
+
+            group = "verification"
+            description = "Check Kotlin code style."
+            classpath = ktlint
+            main = "com.pinterest.ktlint.Main"
+            args = listOf("src/**/*.kt")
+        }
+
+        register<JavaExec>("ktlintFormat") {
+            inputs.files(project.fileTree(mapOf("dir" to "src", "include" to "**/*.kt")))
+            outputs.dir("${project.buildDir}/reports/ktlint/")
+
+            group = "verification"
+            description = "Fix Kotlin code style deviations."
+            classpath = ktlint
+            main = "com.pinterest.ktlint.Main"
+            args = listOf("-F", "src/**/*.kt")
+        }
+    }
 }
