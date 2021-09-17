@@ -1,6 +1,6 @@
 <p>
-<a href=""><img alt="Release build status" src="https://github.com/infeez/kotlin-mock-server/actions/workflows/staging_build.yml/badge.svg"></a>
-<a href=""><img alt="Maven Central" src="https://img.shields.io/maven-central/v/io.github.infeez/kotlin-mock-server"></a>
+<a href=""><img alt="Release build status" src="https://github.com/infeez/kotlin-mock-server/actions/workflows/release_build.yml/badge.svg"></a>
+<a href=""><img alt="Maven Central" src="https://img.shields.io/maven-central/v/io.github.infeez.kotlin-mock-server/kotlin-mock-server"></a>
 <a href="https://codecov.io/gh/infeez/kotlin-mock-server"><img src="https://codecov.io/gh/infeez/kotlin-mock-server/branch/develop/graph/badge.svg?token=2YnIZtQEgz"/></a>
 <a href="https://infeez.github.io/kotlin-mock-server/"><img src="https://img.shields.io/badge/code%20style-%E2%9D%A4-FF4081.svg" alt="kotlin-mock-server"></a>
 <a href="https://discord.gg/hJRtBZPQ"><img src="https://img.shields.io/discord/759394790835355658" alt="Join the chat"/></a>
@@ -29,8 +29,33 @@ Main features:
 * JUnit5 Support (Planned).
 ## Getting Started
 ### Installation
-TBD!
-
+#### Kotlin mock server core
+Gradle Groovy DSL
+```groovy
+implementation 'io.github.infeez.kotlin-mock-server:mock-server-core:1.0.0'
+```
+Gradle Kotlin DSL
+```kotlin
+implementation("io.github.infeez.kotlin-mock-server:mock-server-core:1.0.0")
+```
+#### Kotlin mock server by okhttp
+Gradle Groovy DSL
+```groovy
+implementation 'io.github.infeez.kotlin-mock-server:mock-server-okhttp:1.0.0'
+```
+Gradle Kotlin DSL
+```kotlin
+implementation("io.github.infeez.kotlin-mock-server:mock-server-okhttp:1.0.0")
+```
+#### Kotlin mock server extension for jUnit4
+Gradle Groovy DSL
+```groovy
+implementation 'io.github.infeez.kotlin-mock-server:mock-server-junit:1.0.0'
+```
+Gradle Kotlin DSL
+```kotlin
+implementation("io.github.infeez.kotlin-mock-server:mock-server-junit:1.0.0")
+```
 ## Usage
 ### Ways for create server and usage 
 Using rule for create and start server in your test class. Using OkHttp as a sample:
