@@ -29,6 +29,11 @@ Main features:
 * JUnit5 Support (Planned).
 ## Getting Started
 ### Installation
+```kotlin
+repositories {
+    mavenCentral()
+}
+```
 #### Kotlin mock server core
 Gradle Groovy DSL
 ```groovy
@@ -50,11 +55,11 @@ implementation("io.github.infeez.kotlin-mock-server:mock-server-okhttp:1.0.0")
 #### Kotlin mock server extension for jUnit4
 Gradle Groovy DSL
 ```groovy
-implementation 'io.github.infeez.kotlin-mock-server:mock-server-junit:1.0.0'
+implementation 'io.github.infeez.kotlin-mock-server:mock-server-junit4:1.0.0'
 ```
 Gradle Kotlin DSL
 ```kotlin
-implementation("io.github.infeez.kotlin-mock-server:mock-server-junit:1.0.0")
+implementation("io.github.infeez.kotlin-mock-server:mock-server-junit4:1.0.0")
 ```
 ## Usage
 ### Ways for create server and usage 
