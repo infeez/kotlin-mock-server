@@ -39,6 +39,10 @@ class OkHttpServer(
         mockWebServer.shutdown()
     }
 
+    override fun getUrl(): String {
+        return mockWebServer.url("/").toString()
+    }
+
     private fun MockWebResponse.toMockResponse(): MockResponse {
         return MockResponse().apply {
             setBodyDelay(mockWebResponseParams.delay, MILLISECONDS)

@@ -38,6 +38,12 @@ abstract class Server(
      */
     abstract fun stop()
 
+    /**
+     * Return current mock server url
+     *
+     */
+    abstract fun getUrl(): String
+
     override fun close() {
         stop()
     }
