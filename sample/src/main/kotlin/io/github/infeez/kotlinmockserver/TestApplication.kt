@@ -1,8 +1,8 @@
 package io.github.infeez.kotlinmockserver
 
+import com.google.gson.Gson
 import io.github.rybalkinsd.kohttp.dsl.httpPost
 import java.lang.RuntimeException
-import org.gradle.internal.impldep.com.google.gson.Gson
 
 class TestApplication {
 

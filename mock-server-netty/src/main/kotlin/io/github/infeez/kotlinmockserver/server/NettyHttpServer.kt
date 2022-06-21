@@ -38,6 +38,7 @@ import java.util.logging.Level
 class NettyHttpServer(serverConfiguration: ServerConfiguration) : Server(serverConfiguration) {
 
     private var executor: ExecutorService? = null
+    private var inet: InetSocketAddress? = null
 
     override fun start() {
         if (Epoll.isAvailable()) {
@@ -59,7 +60,7 @@ class NettyHttpServer(serverConfiguration: ServerConfiguration) : Server(serverC
         executor!!.execute {
             println("Netty Started")
             try {
-                val inet = InetSocketAddress(InetAddress.getByName(serverConfiguration.host), serverConfiguration.port)
+                inet = InetSocketAddress(InetAddress.getByName(serverConfiguration.host), serverConfiguration.port)
                 val serverBootstrap = ServerBootstrap().apply {
                     option(ChannelOption.SO_BACKLOG, SO_BACKLOG)
                     option(ChannelOption.SO_REUSEADDR, true)
@@ -82,6 +83,15 @@ class NettyHttpServer(serverConfiguration: ServerConfiguration) : Server(serverC
     override fun stop() {
         executor!!.shutdownNow()
         println("Netty Stopped")
+    }
+
+    override fun getUrl(): String {
+        if (inet == null) {
+            error("Try getting url before start server")
+        }
+
+        // http hardcoded!
+        return "http://${inet!!.hostName}"
     }
 
     private inner class WebServerInitializer : ChannelInitializer<SocketChannel>() {

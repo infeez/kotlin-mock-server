@@ -21,4 +21,8 @@ class TestServer : Server(ServerConfiguration.custom { }) {
     override fun stop() {
         println("Test server stopped: ${System.currentTimeMillis() - timeStart} ms")
     }
+
+    override fun getUrl(): String {
+        error("Not implemented!")
+    }
 }
