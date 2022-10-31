@@ -66,12 +66,9 @@ fun mock(
 
 fun listMocksOf(vararg mocks: Lazy<Mock>): Lazy<List<Mock>> {
     return lazy {
-        mutableListOf<Mock>().apply {
-            mocks.map { mock ->
-                lazy {
-                    mock
-                }
-            }
+        mocks.map { mock ->
+            val m by mock
+            m
         }
     }
 }
