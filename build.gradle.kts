@@ -2,6 +2,7 @@ import io.gitlab.arturbosch.detekt.Detekt
 
 val ktlint by configurations.creating
 
+val libVersion = "1.0.2-SNAPSHOT"
 val jacocoVersion = "0.8.7"
 val ktlintVersion = "0.41.0"
 
@@ -59,7 +60,7 @@ tasks.register<Detekt>("detektFull") {
 allprojects {
 
     group = "io.github.infeez.kotlin-mock-server"
-    version = System.getenv("RELEASE_VERSION") ?: "0.0.0"
+    version = System.getenv("RELEASE_VERSION") ?: libVersion
 
     plugins.withId("com.vanniktech.maven.publish") {
         mavenPublish {
