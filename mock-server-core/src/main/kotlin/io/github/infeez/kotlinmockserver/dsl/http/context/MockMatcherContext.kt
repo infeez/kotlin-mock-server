@@ -9,6 +9,10 @@ import io.github.infeez.kotlinmockserver.rule.MockMatherRule.Query
 /**
  * This class realise DSL-context to build url matcher.
  */
+@Deprecated(
+    message = "",
+    replaceWith = ReplaceWith("", "")
+)
 class MockMatcherContext {
 
     /**

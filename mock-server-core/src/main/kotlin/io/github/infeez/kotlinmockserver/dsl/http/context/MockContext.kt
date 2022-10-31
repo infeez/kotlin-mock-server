@@ -39,12 +39,28 @@ class MockContext {
      * @param requestMethod - [RequestMethod] Http-method type for mock. Optional.
      * @param mockBuilder   - [MockResponseContext] DSL-context to create mock response. Optional.
      */
+    @Deprecated(
+        message = "",
+        replaceWith = ReplaceWith("", "")
+    )
     fun mock(
         matcher: MockMatcherContext.() -> RequestMatcher,
         requestMethod: RequestMethod = RequestMethod.ANY,
         mockBuilder: MockResponseContext.() -> Unit = {}
     ): Mock {
         return MatcherMock(requestMethod, matcher(MockMatcherContext())).apply {
+            mockWebResponse = MockResponseContext().apply(mockBuilder).mwr
+        }.also {
+            mocks.add(it)
+        }
+    }
+
+    fun mock(
+        matcher: RequestMatcher,
+        requestMethod: RequestMethod = RequestMethod.ANY,
+        mockBuilder: MockResponseContext.() -> Unit = {}
+    ): Mock {
+        return MatcherMock(requestMethod, matcher).apply {
             mockWebResponse = MockResponseContext().apply(mockBuilder).mwr
         }.also {
             mocks.add(it)
