@@ -119,4 +119,20 @@ class MockServerContext(
     fun getRequestByMock(mock: Mock): MockWebRequest? {
         return requests[mock.hashCode()]
     }
+
+    fun findRequest(path: String): MockWebRequest {
+        return requests.values.find { request -> request.path == path } ?: error("Request with path=$path not found")
+    }
+
+    fun findRequests(path: String): List<MockWebRequest> {
+        return requests.values.filter { request -> request.path == path }
+    }
+
+    fun findFirstRequest(path: String): MockWebRequest {
+        return requests.values.firstOrNull { request -> request.path == path } ?: error("Request with path=$path not found")
+    }
+
+    fun findLastRequest(path: String): MockWebRequest {
+        return requests.values.lastOrNull { request -> request.path == path } ?: error("Request with path=$path not found")
+    }
 }
