@@ -27,21 +27,14 @@ class MockServerContext(
     init {
         settings(MockConfiguration)
         server.onDispatch = { webRequest ->
+            moveLazyMocks()
+
             val path = webRequest.path
             val method = webRequest.method
             val body = webRequest.body
             val headers = webRequest.headers
 
-            var foundMock = mocks.find { mock -> mock.isCoincided(path, method, body, headers) }
-            if (foundMock == null) {
-                for (i in 0..lazyMocks.size) {
-                    val mock by lazyMocks[i]
-                    if (mock.isCoincided(path, method, body, headers)) {
-                        foundMock = mock
-                        break;
-                    }
-                }
-            }
+            val foundMock = mocks.find { mock -> mock.isCoincided(path, method, body, headers) }
 
             if (foundMock?.mockWebResponse != null) {
                 requests[foundMock.hashCode()] = webRequest
@@ -153,12 +146,20 @@ class MockServerContext(
     }
 
     fun findFirstRequest(path: String): MockWebRequest {
-        return requests.values.firstOrNull { request -> request.path == path }
-            ?: error("Request with path=$path not found")
+        return requests.values.firstOrNull { request -> request.path == path } ?: error("Request with path=$path not found")
     }
 
     fun findLastRequest(path: String): MockWebRequest {
-        return requests.values.lastOrNull { request -> request.path == path }
-            ?: error("Request with path=$path not found")
+        return requests.values.lastOrNull { request -> request.path == path } ?: error("Request with path=$path not found")
+    }
+
+    private fun moveLazyMocks() {
+        mocks.addAll(
+            lazyMocks.map {
+                val mock by it
+                mock
+            }
+        )
+        lazyMocks.clear()
     }
 }
