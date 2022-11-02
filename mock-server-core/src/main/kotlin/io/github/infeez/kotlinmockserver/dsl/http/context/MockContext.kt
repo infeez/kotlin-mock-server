@@ -32,6 +32,20 @@ class MockContext {
         }
     }
 
+    fun mockLazy(
+        url: String,
+        requestMethod: RequestMethod = RequestMethod.ANY,
+        mockBuilder: MockResponseContext.() -> Unit = {}
+    ): Lazy<Mock> {
+        return lazy {
+            mock(
+                url = url,
+                requestMethod = requestMethod,
+                mockBuilder = mockBuilder
+            )
+        }
+    }
+
     /**
      * A method to create a mock using the comparison parameters.
      *
@@ -64,6 +78,20 @@ class MockContext {
             mockWebResponse = MockResponseContext().apply(mockBuilder).mwr
         }.also {
             mocks.add(it)
+        }
+    }
+
+    fun mockLazy(
+        matcher: RequestMatcher,
+        requestMethod: RequestMethod = RequestMethod.ANY,
+        mockBuilder: MockResponseContext.() -> Unit = {}
+    ): Lazy<Mock> {
+        return lazy {
+            mock(
+                matcher = matcher,
+                requestMethod = requestMethod,
+                mockBuilder = mockBuilder
+            )
         }
     }
 

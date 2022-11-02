@@ -10,12 +10,11 @@ fun mock(
         emptyBody()
     }
 ): Lazy<Mock> {
-    return lazy {
-        MockContext().mock(
-            url = url,
-            mockBuilder = mockBuilder
-        )
-    }
+    return MockContext().mockLazy(
+        url = url,
+        mockBuilder = mockBuilder
+    )
+
 }
 
 fun mock(
@@ -25,13 +24,11 @@ fun mock(
         emptyBody()
     }
 ): Lazy<Mock> {
-    return lazy {
-        MockContext().mock(
-            requestMethod = requestMethod,
-            url = url,
-            mockBuilder = mockBuilder
-        )
-    }
+    return MockContext().mockLazy(
+        requestMethod = requestMethod,
+        url = url,
+        mockBuilder = mockBuilder
+    )
 }
 
 fun mock(
@@ -40,12 +37,10 @@ fun mock(
         emptyBody()
     }
 ): Lazy<Mock> {
-    return lazy {
-        MockContext().mock(
-            matcher = matcher,
-            mockBuilder = mockBuilder
-        )
-    }
+    return MockContext().mockLazy(
+        matcher = matcher,
+        mockBuilder = mockBuilder
+    )
 }
 
 fun mock(
@@ -55,13 +50,11 @@ fun mock(
         emptyBody()
     }
 ): Lazy<Mock> {
-    return lazy {
-        MockContext().mock(
-            requestMethod = requestMethod,
-            matcher = matcher,
-            mockBuilder = mockBuilder
-        )
-    }
+    return MockContext().mockLazy(
+        requestMethod = requestMethod,
+        matcher = matcher,
+        mockBuilder = mockBuilder
+    )
 }
 
 fun listMocksOf(vararg mocks: Lazy<Mock>): Lazy<List<Mock>> {
