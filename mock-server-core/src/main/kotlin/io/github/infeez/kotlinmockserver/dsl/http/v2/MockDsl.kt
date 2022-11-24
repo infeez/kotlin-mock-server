@@ -14,7 +14,6 @@ fun mock(
         url = url,
         mockBuilder = mockBuilder
     )
-
 }
 
 fun mock(
