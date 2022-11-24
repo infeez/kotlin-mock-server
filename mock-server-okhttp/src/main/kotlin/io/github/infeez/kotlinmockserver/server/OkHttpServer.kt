@@ -1,5 +1,6 @@
 package io.github.infeez.kotlinmockserver.server
 
+import io.github.infeez.kotlinmockserver.extensions.decodeUrl
 import io.github.infeez.kotlinmockserver.extensions.extractQueryParams
 import io.github.infeez.kotlinmockserver.mockmodel.MockWebRequest
 import io.github.infeez.kotlinmockserver.mockmodel.MockWebResponse
@@ -28,7 +29,7 @@ class OkHttpServer(
                 val mockWebRequest = MockWebRequest(
                     method = request.method!!,
                     path = request.path!!,
-                    queries = request.path!!.extractQueryParams(),
+                    queries = request.path!!.decodeUrl().extractQueryParams(),
                     headers = request.headers.toMap(),
                     body = body
                 )
