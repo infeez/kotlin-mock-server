@@ -1,5 +1,7 @@
 package io.github.infeez.kotlinmockserver.server
 
+import io.github.infeez.kotlinmockserver.extensions.decodeUrl
+import io.github.infeez.kotlinmockserver.extensions.extractQueryParams
 import io.github.infeez.kotlinmockserver.mockmodel.MockWebRequest
 import io.github.infeez.kotlinmockserver.mockmodel.MockWebResponse
 import java.net.InetAddress
@@ -24,7 +26,13 @@ class OkHttpServer(
                 } else {
                     null
                 }
-                val mockWebRequest = MockWebRequest(request.method!!, request.path!!, request.headers.toMap(), body)
+                val mockWebRequest = MockWebRequest(
+                    method = request.method!!,
+                    path = request.path!!,
+                    queries = request.path!!.decodeUrl().extractQueryParams(),
+                    headers = request.headers.toMap(),
+                    body = body
+                )
 
                 return onDispatch.invoke(mockWebRequest).toMockResponse()
             }

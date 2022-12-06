@@ -1,5 +1,6 @@
 package io.github.infeez.kotlinmockserver.server
 
+import io.github.infeez.kotlinmockserver.extensions.extractQueryParams
 import io.github.infeez.kotlinmockserver.mockmodel.MockWebRequest
 import io.netty.bootstrap.ServerBootstrap
 import io.netty.buffer.PooledByteBufAllocator
@@ -114,6 +115,7 @@ class NettyHttpServer(serverConfiguration: ServerConfiguration) : Server(serverC
             val mockWebRequest = MockWebRequest(
                 method = msg.method().name(),
                 path = msg.uri(),
+                queries = msg.uri().extractQueryParams(),
                 headers = msg.headers().associate { it.key to it.value },
                 body = msg.content().copy().toString(Charset.forName("utf-8"))
             )

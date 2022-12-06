@@ -5,7 +5,6 @@ import io.github.infeez.kotlinmockserver.mock.MockConfiguration
 import io.github.infeez.kotlinmockserver.mockmodel.MockWebRequest
 import io.github.infeez.kotlinmockserver.server.Server
 import java.io.Closeable
-import java.lang.IllegalArgumentException
 
 /**
  * The main class that implements the work of the mock server.
@@ -18,12 +17,18 @@ class MockServerContext(
     settings: MockConfiguration.() -> Unit
 ) : Closeable {
 
-    val mocks = mutableListOf<Mock>()
+    private val lazyMocks = mutableListOf<Lazy<Mock>>()
+
+    val mocks by lazy {
+        mutableListOf<Mock>()
+    }
     private val requests = mutableMapOf<Int, MockWebRequest>()
 
     init {
         settings(MockConfiguration)
         server.onDispatch = { webRequest ->
+            moveLazyMocks()
+
             val path = webRequest.path
             val method = webRequest.method
             val body = webRequest.body
@@ -61,6 +66,10 @@ class MockServerContext(
         mocks.add(mock)
     }
 
+    fun add(mock: Lazy<Mock>) {
+        lazyMocks.add(mock)
+    }
+
     /**
      * Adding list of mock [Mock] to mocks list.
      *
@@ -70,6 +79,10 @@ class MockServerContext(
         this.mocks.addAll(mocks)
     }
 
+    fun addAllLazy(mocks: List<Lazy<Mock>>) {
+        lazyMocks.addAll(mocks)
+    }
+
     /**
      * Adding a [Mock] one by one in mock list.
      *
@@ -77,6 +90,10 @@ class MockServerContext(
      */
     fun addAll(vararg mocks: Mock) {
         this.mocks.addAll(mocks)
+    }
+
+    fun addAll(vararg mocks: Lazy<Mock>) {
+        this.lazyMocks.addAll(mocks)
     }
 
     /**
@@ -98,7 +115,7 @@ class MockServerContext(
         if (oldMock == newMock) {
             throw IllegalArgumentException("oldMock equal to newMock!")
         }
-        mocks.map { if (it == oldMock) newMock else oldMock }.toMutableList().also {
+        mocks.map { if (it == oldMock) newMock else it }.toMutableList().also {
             mocks.clear()
             mocks.addAll(it)
         }
@@ -118,5 +135,40 @@ class MockServerContext(
      */
     fun getRequestByMock(mock: Mock): MockWebRequest? {
         return requests[mock.hashCode()]
+    }
+
+    fun findRequest(path: String): MockWebRequest {
+        return requests.values.find {
+            request ->
+            request.path == path
+        } ?: error("Request with path=$path not found")
+    }
+
+    fun findRequests(path: String): List<MockWebRequest> {
+        return requests.values.filter { request -> request.path == path }
+    }
+
+    fun findFirstRequest(path: String): MockWebRequest {
+        return requests.values.firstOrNull {
+            request ->
+            request.path == path
+        } ?: error("Request with path=$path not found")
+    }
+
+    fun findLastRequest(path: String): MockWebRequest {
+        return requests.values.lastOrNull {
+            request ->
+            request.path == path
+        } ?: error("Request with path=$path not found")
+    }
+
+    private fun moveLazyMocks() {
+        mocks.addAll(
+            lazyMocks.map {
+                val mock by it
+                mock
+            }
+        )
+        lazyMocks.clear()
     }
 }

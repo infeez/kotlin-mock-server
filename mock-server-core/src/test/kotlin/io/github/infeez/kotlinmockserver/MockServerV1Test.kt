@@ -7,6 +7,7 @@ import io.github.infeez.kotlinmockserver.dsl.http.context.MockServerContext
 import io.github.infeez.kotlinmockserver.dsl.http.mock
 import io.github.infeez.kotlinmockserver.extensions.changeMockBody
 import io.github.infeez.kotlinmockserver.extensions.copy
+import io.github.infeez.kotlinmockserver.extensions.extractQueryParams
 import io.github.infeez.kotlinmockserver.extensions.mock
 import io.github.infeez.kotlinmockserver.matcher.and
 import io.github.infeez.kotlinmockserver.matcher.or
@@ -526,6 +527,7 @@ class MockServerV1Test {
             MockWebRequest(
                 method = method.method,
                 path = path,
+                queries = path.extractQueryParams(),
                 headers = headers,
                 body = body
             )

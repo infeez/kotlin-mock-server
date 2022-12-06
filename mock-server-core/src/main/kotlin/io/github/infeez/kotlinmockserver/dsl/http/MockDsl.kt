@@ -57,6 +57,10 @@ fun mock(
  * @return a mock [Mock] type for use in MockServer.
  * Also you need to add this created object to your mock list or MockServer mocks.
  */
+@Deprecated(
+    message = "",
+    replaceWith = ReplaceWith("", "")
+)
 fun mock(
     requestMethod: RequestMethod,
     matcher: MockMatcherContext.() -> RequestMatcher
@@ -75,6 +79,10 @@ fun mock(
  * @return a mock [Mock] type for use in MockServer.
  * Also you need to add this created object to your mock list or MockServer mocks.
  */
+@Deprecated(
+    message = "",
+    replaceWith = ReplaceWith("", "")
+)
 fun mock(
     matcher: MockMatcherContext.() -> RequestMatcher
 ): MockBuilder {
@@ -83,6 +91,10 @@ fun mock(
     )
 }
 
+@Deprecated(
+    message = "",
+    replaceWith = ReplaceWith("", "")
+)
 class MockBuilder(
     val matcher: MockMatcherContext.() -> RequestMatcher,
     val requestMethod: RequestMethod = RequestMethod.ANY
