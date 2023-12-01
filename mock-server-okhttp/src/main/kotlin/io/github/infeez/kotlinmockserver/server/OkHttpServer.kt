@@ -6,6 +6,7 @@ import io.github.infeez.kotlinmockserver.mockmodel.MockWebRequest
 import io.github.infeez.kotlinmockserver.mockmodel.MockWebResponse
 import java.net.InetAddress
 import java.util.concurrent.TimeUnit.MILLISECONDS
+import javax.net.ssl.SSLSocketFactory
 import okhttp3.Headers.Companion.toHeaders
 import okhttp3.mockwebserver.Dispatcher
 import okhttp3.mockwebserver.MockResponse
@@ -49,6 +50,10 @@ class OkHttpServer(
 
     override fun getUrl(): String {
         return mockWebServer.url("/").toString()
+    }
+
+    fun useHttps(sslSocketFactory: SSLSocketFactory, tunnelProxy: Boolean) {
+        mockWebServer.useHttps(sslSocketFactory, tunnelProxy)
     }
 
     private fun MockWebResponse.toMockResponse(): MockResponse {
