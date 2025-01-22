@@ -5,6 +5,7 @@ import io.github.infeez.kotlinmockserver.mock.MockConfiguration
 import io.github.infeez.kotlinmockserver.mockmodel.MockWebRequest
 import io.github.infeez.kotlinmockserver.server.Server
 import java.io.Closeable
+import java.util.concurrent.CopyOnWriteArrayList
 
 /**
  * The main class that implements the work of the mock server.
@@ -20,7 +21,7 @@ class MockServerContext(
     private val lazyMocks = mutableListOf<Lazy<Mock>>()
 
     val mocks by lazy {
-        mutableListOf<Mock>()
+        CopyOnWriteArrayList<Mock>()
     }
     private val requests = mutableMapOf<Int, MockWebRequest>()
 
